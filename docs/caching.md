@@ -1,61 +1,82 @@
 # SSR & Frontend Caching
 
-Nylon Mesh is purpose-built to absorb repetitive traffic spikes that would normally overwhelm Server-Side Rendered (SSR) Node.js applications like Next.js or Nuxt. It acts as an unbreakable Stale Shield using a **Tiered Caching** architecture.
+Nylon Mesh is purpose-built to absorb repetitive traffic spikes that would normally overwhelm SSR Node.js applications. It acts as an **unbreakable Stale Shield** using a tiered caching architecture.
 
 ## Cache Tiers
 
-### Tier 1 Cache (Local Memory)
-The first layer of defense. It caches the rendered HTML payloads and static files directly in the proxy server's RAM (moka implementation):
-- **`tier1_capacity`**: The maximum number of elements (pages/files) to hold concurrently (e.g., `10000`).
-- **`tier1_ttl_seconds`**: Time-to-Live. The proxy will serve from RAM and *will not* touch your Next/Nuxt server during this interval. Set to a low value (e.g., `3` to `5` seconds) for high-traffic environments to prevent backend melting while keeping data near real-time.
+### Tier 1 — Local Memory (RAM)
 
-### Tier 2 Cache (Redis)
-A distributed, persistent cache layer backing up Tier 1:
-- **`redis_url`**: Your `redis://localhost:6379` connection string.
-- **`tier2_ttl_seconds`**: General Time-to-Live (e.g., `60` seconds or more) for pages that don't need real-time updates.
+The first layer of defense. Caches rendered HTML payloads and static files directly in the proxy's RAM using [Moka](https://github.com/moka-rs/moka):
 
-**How the Stale Shield works:**
-When 1,000 users request the homepage simultaneously:
-1. Proxy searches **Tier 1 (RAM)** first -> First request MISSES.
-2. Proxy searches **Tier 2 (Redis)** -> First request MISSES.
-3. Proxy hits your **Next.js/Nuxt** server ONCE.
-4. The remaining 999 requests are served instantly from the **Tier 1 RAM** cache, never reaching Node.js!
+| Property | Description | Example |
+|---|---|---|
+| `tier1_capacity` | Max elements (pages/files) held concurrently | `10000` |
+| `tier1_ttl_seconds` | Time-to-Live — proxy serves from RAM during this interval | `3` – `5` |
+
+::: tip Performance
+Set TTL to `3`–`5` seconds for high-traffic environments. This prevents backend melting while keeping data near real-time.
+:::
+
+### Tier 2 — Redis (Distributed)
+
+A persistent, distributed cache layer backing up Tier 1:
+
+| Property | Description | Example |
+|---|---|---|
+| `redis_url` | Redis connection string | `redis://localhost:6379` |
+| `tier2_ttl_seconds` | General TTL for cached pages | `60` |
+
+## How the Stale Shield Works
+
+When **1,000 users** request the homepage simultaneously:
+
+1. Proxy checks **Tier 1 (RAM)** → First request **MISSES**
+2. Proxy checks **Tier 2 (Redis)** → First request **MISSES**
+3. Proxy hits your **Next.js / Nuxt** server **ONCE**
+4. The remaining **999 requests** are served instantly from **Tier 1 RAM** — never reaching Node.js
+
+::: warning
+Only `text/html` responses with HTTP `200` status are cached. API endpoints and non-GET methods are automatically excluded.
+:::
 
 ---
 
-## Cache Bypass for Dynamic Routes
+## Cache Bypass
 
-In frontend frameworks, you have static pages (home, blogs) and highly dynamic systems (APIs, user dashboards, admin panels). You must prevent Nylon from caching dynamic paths:
+In frontend frameworks, you have static pages (home, blogs) and dynamic systems (APIs, dashboards). Prevent Nylon from caching dynamic paths:
 
 ```yaml
 bypass:
   paths:
-    - "/_next/webpack-hmr" # Next.js dev server hot-reloading
-    - "/api/"              # Never cache backend API calls
-    - "/admin/"            # Never cache authenticated panels
+    - "/_next/webpack-hmr" # Next.js HMR (dev only)
+    - "/api/"              # Backend API calls
+    - "/admin/"            # Authenticated panels
   extensions:
-    - ".ico"               # Skip caching favicons in proxy memory
+    - ".ico"               # Skip favicons
 ```
-> [!IMPORTANT]
-> Bypass rules have absolute priority. If a user hits `/api/users`, the proxy ignores all caching logic and forwards the request directly to the backend.
+
+::: important
+Bypass rules have **absolute priority**. If a user hits `/api/users`, the proxy ignores all caching and forwards directly to the backend.
+:::
 
 ---
 
 ## Cache-Control Header Injection
 
-Modern frameworks bundle CSS, JS, and image assets with unique hashes (e.g., `_next/static/css/hash.css`). These files never change and should be cached permanently by the user's browser, reducing your server's bandwidth footprint.
+Modern frameworks bundle CSS, JS, and images with unique hashes (e.g., `_next/static/css/hash.css`). These files never change and should be cached permanently by the browser.
 
-Administrators can use Nylon Mesh to dynamically inject `Cache-Control` headers into the response, forcing the browser or external CDNs to cache them:
+Use Nylon Mesh to inject `Cache-Control` headers dynamically:
 
 ```yaml
 cache_control:
   - value: "public, max-age=31536000, immutable"
     paths:
-      - "/_next/static/"  # Next.js static assets
-      - "/_nuxt/"         # Nuxt.js static assets
+      - "/_next/static/"  # Next.js hashed assets
+      - "/_nuxt/"         # Nuxt.js assets
     extensions:
       - ".png"
       - ".jpg"
       - ".svg"
 ```
-By defining this, your downstream proxy instructs the browser: *"Keep these static framework files for a year, do not ask the server for them again."*
+
+This tells the browser: *"Keep these static files for a year. Don't ask the server again."*

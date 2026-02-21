@@ -1,8 +1,8 @@
-# Configuration Options
+# Configuration
 
-Nylon Mesh is entirely declarative, meaning its behavior is controlled and managed primarily through a single YAML configuration file (typically `nylon-mesh.yaml`).
+Nylon Mesh is entirely declarative—its behavior is controlled through a single YAML file.
 
-## Example `nylon-mesh.yaml`
+## Full Example
 
 ```yaml
 threads: 10
@@ -43,25 +43,55 @@ cache_control:
       - ".jpg"
 ```
 
+---
+
 ## Property Reference
 
+### Server
+
 | Property | Description | Type |
-| --- | --- | --- |
-| `threads` | Number of worker threads. If omitted, it defaults to the host CPU core count. | Integer |
-| `listen` | IP and Port the proxy server binds to, e.g., `0.0.0.0:3000`. | String |
-| `liveness_path` | URL path for Liveness Probes (e.g., in K8s). It responds with "OK". | String |
-| `readiness_path` | URL path to verify if the application is ready to accept HTTP requests (e.g., K8s Readiness Probe). | String |
-| `graceful_shutdown...` | Time in seconds to await active connections to finish before fully shutting down the process. | Integer |
-| `upstreams` | Target backend servers. Learn more in the [Load Balancing](/load-balancing) section. | Array |
-| `load_balancer_algo` | Request distribution strategy. Supports `round_robin` and `random`. | String |
-| `redis_url` | Connection URL for Redis (used as the Tier 2 Cache storage layer). | String |
-| `cache` | Settings for defining Capacity and Time-To-Live (TTL) for caching. | Object |
-| `bypass` | Rules (paths/extensions) indicating which traffic should **never be cached (Cache Bypass)**. | Object |
-| `cache_control` | Injects HTTP `Cache-Control` response headers enforcing cache policies to connecting clients/browsers. | Array |
+|---|---|---|
+| `threads` | Worker threads. Defaults to host CPU core count. | `Integer` |
+| `listen` | IP and port the proxy binds to, e.g., `0.0.0.0:3000` | `String` |
 
-## TLS / HTTPS Configuration
+### Health Checks
 
-If you wish to terminate TLS directly at the proxy, append the following parameters to your configuration:
+| Property | Description | Type |
+|---|---|---|
+| `liveness_path` | Liveness probe URL (K8s). Responds `200 OK`. | `String` |
+| `readiness_path` | Readiness probe URL (K8s). Returns `503` during shutdown. | `String` |
+| `grace_period_seconds` | Delay before starting graceful shutdown. | `Integer` |
+| `graceful_shutdown_timeout_seconds` | Time to await active connections before termination. | `Integer` |
+
+### Load Balancing
+
+| Property | Description | Type |
+|---|---|---|
+| `upstreams` | Target backend servers. See [Load Balancing](/load-balancing). | `Array` |
+| `load_balancer_algo` | Distribution strategy: `round_robin` or `random`. | `String` |
+
+### Caching
+
+| Property | Description | Type |
+|---|---|---|
+| `redis_url` | Redis connection URL for Tier 2 cache. | `String` |
+| `cache.tier1_capacity` | Max elements in RAM cache. | `Integer` |
+| `cache.tier1_ttl_seconds` | Tier 1 TTL in seconds. | `Integer` |
+| `cache.tier2_ttl_seconds` | Tier 2 (Redis) TTL in seconds. | `Integer` |
+
+### Cache Rules
+
+| Property | Description | Type |
+|---|---|---|
+| `bypass.paths` | URL prefixes that should **never** be cached. | `Array<String>` |
+| `bypass.extensions` | File extensions that should **never** be cached. | `Array<String>` |
+| `cache_control` | Rules for injecting `Cache-Control` headers. | `Array<Object>` |
+
+---
+
+## TLS / HTTPS
+
+Terminate TLS directly at the proxy:
 
 ```yaml
 tls:
@@ -71,3 +101,7 @@ tls:
       cert_path: "cert.pem"
       key_path: "key.pem"
 ```
+
+::: tip
+For production Kubernetes deployments, it's recommended to terminate TLS at the ingress controller and let Nylon Mesh handle plain HTTP internally.
+:::

@@ -9,6 +9,8 @@ const meshReqSec = ref(0)
 const meshLatency = ref("0.00")
 const meshTransfer = ref(0)
 
+const multiplier = ref("0.0")
+
 let animationId
 
 onMounted(() => {
@@ -19,6 +21,8 @@ onMounted(() => {
   const mTargetReq = 100321
   const mTargetLat = 1.19
   const mTargetTrans = 292
+
+  const targetMultiplier = (mTargetReq / vTargetReq)
   
   const duration = 2000
   let startTime = null
@@ -28,9 +32,8 @@ onMounted(() => {
     const elapsed = timestamp - Math.max(startTime, 0)
     
     if (elapsed < duration) {
-      // Phase 1: Count up
       const progress = elapsed / duration
-      const easeProgress = 1 - Math.pow(1 - progress, 4) // easeOutQuart
+      const easeProgress = 1 - Math.pow(1 - progress, 4)
       
       vanillaReqSec.value = Math.floor(easeProgress * vTargetReq)
       vanillaLatency.value = (easeProgress * vTargetLat).toFixed(2)
@@ -39,8 +42,9 @@ onMounted(() => {
       meshReqSec.value = Math.floor(easeProgress * mTargetReq)
       meshLatency.value = (easeProgress * mTargetLat).toFixed(2)
       meshTransfer.value = Math.floor(easeProgress * mTargetTrans)
+
+      multiplier.value = (easeProgress * targetMultiplier).toFixed(1)
     } else {
-      // Phase 2: Continuous fluctuation (Live Dashboard Feel)
       const timeInSec = timestamp / 1000
       
       const vReqNoise = Math.sin(timeInSec * 2) * 150 + Math.cos(timeInSec * 3.5) * 80
@@ -60,6 +64,9 @@ onMounted(() => {
       
       const mTransNoise = Math.sin(timeInSec * 2.5) * 6 + Math.cos(timeInSec * 4) * 4
       meshTransfer.value = Math.floor(mTargetTrans + mTransNoise)
+
+      const currentMultiplier = meshReqSec.value / Math.max(vanillaReqSec.value, 1)
+      multiplier.value = currentMultiplier.toFixed(1)
     }
 
     animationId = requestAnimationFrame(animate)
@@ -74,77 +81,83 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div style="text-align: center;">
-    <div class="glow-bg pulse"></div>
+  <div class="benchmark-section">
     <div class="benchmark-content">
-      <h2 class="title slide-in-bottom">Blazing Fast on Edge</h2>
-      <p class="subtitle slide-in-bottom delay-1">
-        Tested with <code>oha</code> (120 concurrent connections) on an <br/>
-        <strong>Apple M1 Pro (10-core CPU, 16GB RAM)</strong> serving a default <br/>
-        <code class="nextjs-badge">Next.js 16</code> app (<code>bun create next-app@latest my-app --yes</code>).
+      <h2 class="bench-title">Blazing Fast on Edge</h2>
+      <p class="bench-subtitle">
+        Tested with <code>oha</code> — 120 concurrent connections on <strong>Apple M1 Pro</strong> serving a default
+        <code>Next.js 16</code> app.
       </p>
 
-      <div class="comparison-grid slide-in-bottom delay-2">
-        <!-- Nylon Mesh -->
-        <div class="stat-card prime mesh-card shimmer">
-          <div class="card-header">
-            <h3>With Nylon Mesh</h3>
-            <span class="badge-sub prime-badge">~19x Faster</span>
-          </div>
+      <!-- Multiplier Hero -->
+      <div class="multiplier-hero">
+        <span class="mult-value">{{ multiplier }}×</span>
+        <span class="mult-label">faster</span>
+      </div>
 
-          <div class="stat-metrics">
-            <div class="stat-row highlight-row">
-              <span class="stat-label">Requests / Sec</span>
-              <span class="stat-value highlight">{{ meshReqSec.toLocaleString() }}</span>
+      <!-- Cards -->
+      <div class="bench-grid">
+        <!-- Mesh Card -->
+        <div class="bench-card mesh-card">
+          <div class="card-glow"></div>
+          <div class="card-top">
+            <h3 class="card-title">With Nylon Mesh</h3>
+            <span class="card-badge">⚡ Cached</span>
+          </div>
+          <div class="metrics">
+            <div class="metric primary-metric">
+              <span class="metric-value glow-value">{{ meshReqSec.toLocaleString() }}</span>
+              <span class="metric-label">req/s</span>
             </div>
-            <div class="stat-row">
-              <span class="stat-label">Average Latency</span>
-              <span class="stat-value highlight-sm">{{ meshLatency }} <small>ms</small></span>
+            <div class="metric">
+              <span class="metric-value accent-value">{{ meshLatency }}<small>ms</small></span>
+              <span class="metric-label">avg latency</span>
             </div>
-            <div class="stat-row">
-              <span class="stat-label">Transfer Speed</span>
-              <span class="stat-value highlight-sm">{{ meshTransfer }} <small>MB/s</small></span>
+            <div class="metric">
+              <span class="metric-value accent-value">{{ meshTransfer }}<small>MB/s</small></span>
+              <span class="metric-label">throughput</span>
             </div>
           </div>
         </div>
 
-        <div class="vs-wrapper">
-          <div class="vs-badge">VS</div>
+        <!-- VS -->
+        <div class="vs-divider">
+          <div class="vs-pill">VS</div>
         </div>
 
-        <!-- Vanilla Next.js -->
-        <div class="stat-card vanilla-card hover-glow">
-          <div class="card-header">
-            <h3>Vanilla Next.js</h3>
-            <span class="badge-sub">Without Mesh</span>
+        <!-- Vanilla Card -->
+        <div class="bench-card vanilla-card">
+          <div class="card-top">
+            <h3 class="card-title">Vanilla Next.js</h3>
+            <span class="card-badge dim-badge">No Cache</span>
           </div>
-          
-          <div class="stat-metrics">
-            <div class="stat-row">
-              <span class="stat-label">Requests / Sec</span>
-              <span class="stat-value">{{ vanillaReqSec.toLocaleString() }}</span>
+          <div class="metrics">
+            <div class="metric primary-metric">
+              <span class="metric-value dim-value">{{ vanillaReqSec.toLocaleString() }}</span>
+              <span class="metric-label">req/s</span>
             </div>
-            <div class="stat-row">
-              <span class="stat-label">Average Latency</span>
-              <span class="stat-value">{{ vanillaLatency }} <small>ms</small></span>
+            <div class="metric">
+              <span class="metric-value dim-value">{{ vanillaLatency }}<small>ms</small></span>
+              <span class="metric-label">avg latency</span>
             </div>
-            <div class="stat-row">
-              <span class="stat-label">Transfer Speed</span>
-              <span class="stat-value">{{ vanillaTransfer }} <small>MB/s</small></span>
+            <div class="metric">
+              <span class="metric-value dim-value">{{ vanillaTransfer }}<small>MB/s</small></span>
+              <span class="metric-label">throughput</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="terminals-wrapper slide-in-bottom delay-3">
+      <!-- Terminal Outputs -->
+      <div class="terminals">
         <div class="terminal">
-          <div class="terminal-header">
-            <span class="dot red"></span>
-            <span class="dot yellow"></span>
-            <span class="dot green"></span>
-            <span class="term-title">Vanilla Next.js</span>
+          <div class="term-bar">
+            <span class="dot r"></span>
+            <span class="dot y"></span>
+            <span class="dot g"></span>
+            <span class="term-name">Vanilla Next.js</span>
           </div>
-          <pre class="terminal-body type-window">
+          <pre class="term-body">
 Summary:
   Success rate:	100.00%
   Total:	10002.3488 ms
@@ -155,30 +168,28 @@ Summary:
 
   Total data:	150.34 MiB
   Size/request:	2.98 KiB
-  Size/sec:	15.03 MiB
-          </pre>
+  Size/sec:	15.03 MiB</pre>
         </div>
 
-        <div class="terminal prime-terminal">
-          <div class="terminal-header">
-            <span class="dot red"></span>
-            <span class="dot yellow"></span>
-            <span class="dot green"></span>
-            <span class="term-title">Next.js + Nylon Mesh</span>
+        <div class="terminal mesh-terminal">
+          <div class="term-bar">
+            <span class="dot r"></span>
+            <span class="dot y"></span>
+            <span class="dot g"></span>
+            <span class="term-name">Next.js + Nylon Mesh</span>
           </div>
-          <pre class="terminal-body type-window">
+          <pre class="term-body">
 Summary:
   Success rate:	100.00%
   Total:	10001.9643 ms
   Slowest:	11.1559 ms
   Fastest:	0.0368 ms
   Average:	1.1938 ms
-  Requests/sec:	<span class="glow-text">100321.1940</span>
+  Requests/sec:	<span class="term-highlight">100321.1940</span>
 
   Total data:	2.85 GiB
   Size/request:	2.98 KiB
-  Size/sec:	291.69 MiB
-          </pre>
+  Size/sec:	291.69 MiB</pre>
         </div>
       </div>
     </div>
@@ -186,16 +197,16 @@ Summary:
 </template>
 
 <style scoped>
-.glow-bg {
-  position: absolute;
-  top: -50%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 800px;
-  height: 800px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(0,0,0,0) 70%);
-  pointer-events: none;
-  z-index: 0;
+.benchmark-section {
+  position: relative;
+  text-align: center;
+  padding: 2rem 1.5rem 4rem;
+  overflow: hidden;
+}
+
+@keyframes orbPulse {
+  from { opacity: 0.5; transform: translateX(-50%) scale(0.9); }
+  to { opacity: 1; transform: translateX(-50%) scale(1.1); }
 }
 
 .benchmark-content {
@@ -203,244 +214,262 @@ Summary:
   z-index: 1;
 }
 
-.badge {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  padding: 0.35rem 1rem;
-  border-radius: 20px;
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--vp-c-brand-1);
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.title {
-  font-size: 3.5rem;
+.bench-title {
+  font-size: 2.8rem;
   font-weight: 800;
   margin-bottom: 1rem;
-  background: -webkit-linear-gradient(45deg, var(--vp-c-brand-1), #10b981);
+  background: linear-gradient(135deg, #e6edf3, #10b981);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  line-height: 1.2;
+  letter-spacing: -0.03em;
   border: none;
+  animation: slideUp 0.6s ease-out;
 }
 
-.nextjs-badge {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--vp-c-text-1);
+.bench-subtitle {
+  font-size: 1.1rem;
+  color: #8b949e;
+  margin-bottom: 2.5rem;
+  line-height: 1.7;
+  animation: slideUp 0.6s ease-out 0.1s both;
+}
+
+.bench-subtitle code {
+  background: rgba(16, 185, 129, 0.1);
+  color: #3fb950;
   padding: 0.1rem 0.4rem;
-  border-radius: 6px;
-  font-family: inherit;
-  font-weight: bold;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
-.subtitle {
-  font-size: 1.2rem;
-  color: var(--vp-c-text-2);
-  margin-bottom: 3.5rem;
+/* Multiplier */
+.multiplier-hero {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 2.5rem;
+  animation: slideUp 0.6s ease-out 0.2s both;
 }
 
-/* Comparison Grid */
-.comparison-grid {
+.mult-value {
+  font-size: 5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #10b981, #3fb950, #22d3ee);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.3));
+}
+
+.mult-label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #6e7681;
+  letter-spacing: 0.02em;
+}
+
+/* Cards */
+.bench-grid {
   display: flex;
   flex-direction: column;
-  margin-bottom: 3.5rem;
   align-items: center;
+  margin-bottom: 3rem;
+  animation: slideUp 0.6s ease-out 0.3s both;
 }
 
-.stat-card {
-  background: var(--vp-c-bg-mute);
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 20px;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
+.bench-card {
   width: 100%;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-@media (min-width: 768px) {
-  .stat-card {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 2.5rem 3rem;
-  }
-}
-
-.vanilla-card {
-  opacity: 0.9;
+  max-width: 680px;
+  border-radius: 16px;
+  padding: 2rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
 
 .mesh-card {
+  background: linear-gradient(145deg, rgba(20, 26, 34, 0.95), rgba(16, 185, 129, 0.06));
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: 0 12px 40px rgba(16, 185, 129, 0.12);
+}
+
+.mesh-card:hover {
   transform: scale(1.02);
-  z-index: 2;
-  box-shadow: 0 15px 40px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 20px 60px rgba(16, 185, 129, 0.2);
 }
 
-.card-header {
-  margin-bottom: 2rem;
+.card-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.04), transparent);
+  transform: skewX(-20deg);
+  animation: shimmerSlide 4s infinite 2s;
+}
+
+@keyframes shimmerSlide {
+  0% { left: -100%; }
+  100% { left: 250%; }
+}
+
+.vanilla-card {
+  background: rgba(20, 26, 34, 0.6);
+  border: 1px solid rgba(48, 54, 61, 0.5);
+  opacity: 0.85;
+}
+
+.vanilla-card:hover {
+  transform: scale(1.01);
+  opacity: 1;
+}
+
+.card-top {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+  margin-bottom: 1.8rem;
 }
 
-@media (min-width: 768px) {
-  .card-header {
-    margin-bottom: 0;
-    align-items: flex-start;
-  }
-}
-
-.card-header h3 {
-  font-size: 1.5rem;
+.card-title {
+  font-size: 1.25rem;
   font-weight: 700;
+  color: #e6edf3;
   margin: 0;
-  color: var(--vp-c-text-1);
 }
 
-.badge-sub {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  background: rgba(128, 128, 128, 0.15);
-  color: var(--vp-c-text-2);
-}
-
-.prime-badge {
-  background: rgba(16, 185, 129, 0.2);
-  color: var(--vp-c-brand-1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+.card-badge {
+  font-size: 0.7rem;
   font-weight: 700;
-  box-shadow: 0 0 10px rgba(16,185,129,0.2);
+  letter-spacing: 0.06em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #3fb950;
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
-.stat-metrics {
+.dim-badge {
+  background: rgba(139, 148, 158, 0.1);
+  color: #6e7681;
+  border-color: rgba(139, 148, 158, 0.2);
+}
+
+.metrics {
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  align-items: flex-end;
+  gap: 2rem;
+  flex-wrap: wrap;
 }
 
-@media (min-width: 768px) {
-  .stat-metrics {
-    flex-direction: row;
-    align-items: center;
+@media (min-width: 640px) {
+  .metrics {
     gap: 3rem;
   }
 }
 
-.stat-row {
+.metric {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.highlight-row {
-  margin-bottom: 0.5rem;
+.primary-metric {
+  flex: 1;
 }
 
-@media (min-width: 768px) {
-  .highlight-row {
-    margin-bottom: 0;
-  }
+.metric-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: #6e7681;
+  margin-top: 0.4rem;
 }
 
-/* VS Badge Spacer */
-.vs-wrapper {
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #e6edf3;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-value small {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6e7681;
+  margin-left: 0.15rem;
+}
+
+.glow-value {
+  font-size: 3.2rem;
+  background: linear-gradient(120deg, #10b981, #3fb950);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.3));
+}
+
+.accent-value {
+  color: #3fb950;
+  font-size: 1.6rem;
+}
+
+.accent-value small {
+  color: rgba(63, 185, 80, 0.5);
+}
+
+.dim-value {
+  color: #8b949e;
+}
+
+.dim-value small {
+  color: #6e7681;
+}
+
+/* VS Divider */
+.vs-divider {
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 1rem 0;
-  z-index: 3;
+  z-index: 2;
 }
 
-.vs-badge {
-  width: 48px;
-  height: 48px;
+.vs-pill {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: var(--vp-c-bg-soft);
-  border: 2px solid var(--vp-c-divider);
+  background: rgba(20, 26, 34, 0.9);
+  border: 2px solid rgba(48, 54, 61, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
   font-style: italic;
-  color: var(--vp-c-text-2);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.hover-glow:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.05);
-  border-color: var(--vp-c-text-2);
-}
-
-.stat-card.prime {
-  background: linear-gradient(145deg, var(--vp-c-bg-mute), rgba(16, 185, 129, 0.08));
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card.prime:hover {
-  transform: scale(1.04) translateY(-5px);
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  color: var(--vp-c-text-2);
-  margin-bottom: 0.5rem;
-  z-index: 2;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--vp-c-text-1);
-  line-height: 1;
-  z-index: 2;
-}
-
-.stat-value small {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--vp-c-text-3);
-  margin-left: 0.2rem;
-}
-
-.stat-value.highlight {
-  font-size: 4rem;
-  background: -webkit-linear-gradient(120deg, var(--vp-c-brand-1), #3fb950);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  line-height: 1;
-  text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
-}
-
-.stat-value.highlight-sm {
-  font-size: 2.2rem;
-  color: #3fb950;
+  color: #6e7681;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 /* Terminals */
-.terminals-wrapper {
+.terminals {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   text-align: left;
+  animation: slideUp 0.6s ease-out 0.4s both;
 }
 
 @media (min-width: 900px) {
-  .terminals-wrapper {
+  .terminals {
     flex-direction: row;
   }
 }
@@ -448,23 +477,23 @@ Summary:
 .terminal {
   flex: 1;
   background: #0d1117;
-  border-radius: 16px;
-  border: 1px solid #30363d;
+  border-radius: 14px;
+  border: 1px solid #21262d;
   overflow: hidden;
-  box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-.prime-terminal {
-  border-color: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.1);
+.mesh-terminal {
+  border-color: rgba(16, 185, 129, 0.2);
+  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.08);
 }
 
-.terminal-header {
+.term-bar {
   background: #161b22;
-  padding: 0.75rem 1rem;
+  padding: 0.65rem 1rem;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #30363d;
+  border-bottom: 1px solid #21262d;
 }
 
 .dot {
@@ -473,91 +502,45 @@ Summary:
   border-radius: 50%;
   margin-right: 6px;
 }
-.dot.red { background: #ff5f56; }
-.dot.yellow { background: #ffbd2e; }
-.dot.green { background: #27c93f; }
+.dot.r { background: #ff5f56; }
+.dot.y { background: #ffbd2e; }
+.dot.g { background: #27c93f; }
 
-.term-title {
+.term-name {
   margin-left: auto;
   margin-right: auto;
-  color: #8b949e;
+  color: #6e7681;
   font-weight: 600;
-  font-size: 0.75rem;
-  font-family: monospace;
+  font-size: 0.72rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
 }
 
-.terminal-body {
+.term-body {
   margin: 0;
-  padding: 1.5rem;
-  font-family: 'Fira Code', 'Monaco', monospace;
-  font-size: 0.85rem;
-  color: #c9d1d9;
-  line-height: 1.5;
+  padding: 1.2rem 1.5rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.8rem;
+  color: #8b949e;
+  line-height: 1.6;
   overflow-x: auto;
 }
 
-.glow-text {
+.term-highlight {
   color: #3fb950;
-  font-weight: bold;
-  text-shadow: 0 0 10px rgba(63, 185, 80, 0.5);
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(63, 185, 80, 0.4);
 }
 
-.pulse {
-  animation: pulseGlow 4s infinite alternate;
-}
-
-@keyframes pulseGlow {
-  from { opacity: 0.6; transform: translateX(-50%) scale(0.95); }
-  to { opacity: 1; transform: translateX(-50%) scale(1.05); }
-}
-
-.bounce-in {
-  opacity: 0;
-  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-  animation-delay: 0.3s;
-}
-
-@keyframes bounceIn {
-  0% { opacity: 0; transform: scale(0.3); }
-  50% { opacity: 1; transform: scale(1.05); }
-  70% { transform: scale(0.9); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-.slide-in-bottom {
-  opacity: 0;
-  animation: slideInBottom 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-@keyframes slideInBottom {
-  from { opacity: 0; transform: translateY(20px); }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.delay-1 { animation-delay: 0.2s; }
-.delay-2 { animation-delay: 0.4s; }
-.delay-3 { animation-delay: 0.6s; }
-
-.shimmer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.05) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: skewX(-20deg);
-  animation: shimmer 3s infinite 2s;
-  z-index: 1;
-}
-
-@keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 200%; }
+@media (max-width: 640px) {
+  .bench-title { font-size: 2rem; }
+  .mult-value { font-size: 3.5rem; }
+  .glow-value { font-size: 2.4rem; }
+  .metrics { gap: 1.5rem; }
 }
 </style>

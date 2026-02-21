@@ -1,13 +1,14 @@
 # Load Balancing
 
-Nylon Mesh uses Pingora's production-proven load balancing logic, ensuring each incoming HTTP request is routed to an upstream gracefully and efficiently.
+Nylon Mesh uses [Pingora's](https://github.com/cloudflare/pingora) production-proven load balancing engine to route incoming HTTP requests across your upstream pool.
 
 ## Selection Algorithms
-Determines how incoming traffic is distributed across the available backend pool:
-- `round_robin` (Default): Distributes traffic sequentially and equally to the upstreams.
-- `random`: Randomly assigns traffic to the available upstream servers.
 
-**Example Configuration:**
+| Algorithm | Behavior |
+|---|---|
+| `round_robin` **(default)** | Distributes traffic sequentially and equally across upstreams. |
+| `random` | Randomly assigns each request to an available upstream. |
+
 ```yaml
 load_balancer_algo: "round_robin"
 ```
@@ -16,10 +17,9 @@ load_balancer_algo: "round_robin"
 
 ## Defining Upstreams
 
-You can configure target backends (`upstreams`) flexibly, supporting both simple endpoints and heavily tailored active weights.
-
 ### Simple Configuration
-Just provide the IP/Domain and Port of the target server:
+
+Just provide the address and port of each backend:
 
 ```yaml
 upstreams:
@@ -28,7 +28,8 @@ upstreams:
 ```
 
 ### Weighted Configuration
-For backend servers equipped with superior hardware (CPU/RAM) relative to the rest of the pool, you can explicitly configure a higher `weight` to ensure they handle a larger slice of traffic.
+
+For backends with different hardware capabilities, assign `weight` to route proportionally more traffic:
 
 ```yaml
 upstreams:
@@ -37,12 +38,16 @@ upstreams:
   - address: "127.0.0.1:3002"
     weight: 2
 ```
-In the example above, for every `12` requests, the first server will handle `10`, while the second server manages `2`.
+
+::: tip
+In this example, for every **12** requests the first server handles **10** while the second manages **2**. Use this to route more traffic to machines with stronger CPU/RAM.
+:::
 
 ---
 
 ## Health Probes
-Integrated support for Liveness and Readiness Endpoints, ensuring orchestration frameworks like Kubernetes can continuously monitor proxy health.
+
+Integrated Liveness and Readiness endpoints for orchestration platforms like Kubernetes:
 
 ```yaml
 liveness_path: "/_health/live"
@@ -51,5 +56,11 @@ grace_period_seconds: 0
 graceful_shutdown_timeout_seconds: 0
 ```
 
-- **Liveness** (`/_health/live`): Continuously checked to verify the proxy process is healthy. Replies with HTTP Status 200 "OK".
-- **Readiness** (`/_health/ready`): Used to verify the proxy is fully initialized and ready to receive real traffic. Also intercepts Graceful Shutdown statuses, changing the HTTP code appropriately to drain outstanding connections.
+| Probe | Path | Behavior |
+|---|---|---|
+| **Liveness** | `/_health/live` | Returns `200 OK` while the proxy process is healthy. |
+| **Readiness** | `/_health/ready` | Returns `200 OK` when ready to receive traffic. Returns `503` during graceful shutdown to drain connections. |
+
+::: warning
+Health probe paths are handled natively by Nylon Mesh and **never** forwarded to your backend. Make sure these paths don't conflict with your application routes.
+:::
