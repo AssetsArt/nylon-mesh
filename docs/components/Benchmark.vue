@@ -86,33 +86,6 @@ onUnmounted(() => {
       </p>
 
       <div class="comparison-grid slide-in-bottom delay-2">
-        <!-- Vanilla Next.js -->
-        <div class="stat-card vanilla-card hover-glow">
-          <div class="card-header">
-            <h3>Vanilla Next.js</h3>
-            <span class="badge-sub">Without Mesh</span>
-          </div>
-          
-          <div class="stat-metrics">
-            <div class="stat-row">
-              <span class="stat-label">Requests / Sec</span>
-              <span class="stat-value">{{ vanillaReqSec.toLocaleString() }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Average Latency</span>
-              <span class="stat-value">{{ vanillaLatency }} <small>ms</small></span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Transfer Speed</span>
-              <span class="stat-value">{{ vanillaTransfer }} <small>MB/s</small></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="vs-wrapper">
-          <div class="vs-badge">VS</div>
-        </div>
-
         <!-- Nylon Mesh -->
         <div class="stat-card prime mesh-card shimmer">
           <div class="card-header">
@@ -132,6 +105,33 @@ onUnmounted(() => {
             <div class="stat-row">
               <span class="stat-label">Transfer Speed</span>
               <span class="stat-value highlight-sm">{{ meshTransfer }} <small>MB/s</small></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="vs-wrapper">
+          <div class="vs-badge">VS</div>
+        </div>
+
+        <!-- Vanilla Next.js -->
+        <div class="stat-card vanilla-card hover-glow">
+          <div class="card-header">
+            <h3>Vanilla Next.js</h3>
+            <span class="badge-sub">Without Mesh</span>
+          </div>
+          
+          <div class="stat-metrics">
+            <div class="stat-row">
+              <span class="stat-label">Requests / Sec</span>
+              <span class="stat-value">{{ vanillaReqSec.toLocaleString() }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Average Latency</span>
+              <span class="stat-value">{{ vanillaLatency }} <small>ms</small></span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Transfer Speed</span>
+              <span class="stat-value">{{ vanillaTransfer }} <small>MB/s</small></span>
             </div>
           </div>
         </div>
@@ -259,18 +259,8 @@ Summary:
 .comparison-grid {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
   margin-bottom: 3.5rem;
   align-items: center;
-}
-
-@media (min-width: 900px) {
-  .comparison-grid {
-    flex-direction: row;
-    align-items: stretch;
-    justify-content: center;
-    gap: 0;
-  }
 }
 
 .stat-card {
@@ -280,10 +270,18 @@ Summary:
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  flex: 1;
   width: 100%;
-  max-width: 450px;
+  max-width: 800px;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .stat-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2.5rem 3rem;
+  }
 }
 
 .vanilla-card {
@@ -302,6 +300,13 @@ Summary:
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .card-header {
+    margin-bottom: 0;
+    align-items: flex-start;
+  }
 }
 
 .card-header h3 {
@@ -334,6 +339,14 @@ Summary:
   gap: 1.5rem;
 }
 
+@media (min-width: 768px) {
+  .stat-metrics {
+    flex-direction: row;
+    align-items: center;
+    gap: 3rem;
+  }
+}
+
 .stat-row {
   display: flex;
   flex-direction: column;
@@ -344,6 +357,12 @@ Summary:
   margin-bottom: 0.5rem;
 }
 
+@media (min-width: 768px) {
+  .highlight-row {
+    margin-bottom: 0;
+  }
+}
+
 /* VS Badge Spacer */
 .vs-wrapper {
   display: flex;
@@ -351,12 +370,6 @@ Summary:
   justify-content: center;
   margin: 1rem 0;
   z-index: 3;
-}
-
-@media (min-width: 900px) {
-  .vs-wrapper {
-    margin: 0 -24px;
-  }
 }
 
 .vs-badge {
