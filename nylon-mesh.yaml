@@ -7,7 +7,10 @@ listen: "0.0.0.0:3000"
 #       key_path: "key.pem"
 upstreams:
   - "127.0.0.1:3001"
-redis_url: ""
+  # - address: "127.0.0.1:3002"
+    # weight: 5
+load_balancer_algo: "round_robin"
+# redis_url: "redis://localhost:6379"
 cache:
   tier1_capacity: 10000
   tier1_ttl_seconds: 3

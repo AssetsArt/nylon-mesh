@@ -7,12 +7,15 @@ use once_cell::sync::Lazy;
 use pingora::Result;
 use pingora::http::ResponseHeader;
 use pingora::upstreams::peer::HttpPeer;
-use pingora_load_balancing::{LoadBalancer, selection::RoundRobin};
+use pingora_load_balancing::{
+    LoadBalancer,
+    selection::{Random, RoundRobin},
+};
 use pingora_proxy::{ProxyHttp, Session};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info};
+use tracing::{debug, error};
 
 use crate::config::Config;
 
@@ -50,9 +53,27 @@ async fn get_redis_conn(redis_url: &str) -> Option<redis::aio::MultiplexedConnec
     }
 }
 
+pub enum MeshLoadBalancer {
+    RoundRobin(Arc<LoadBalancer<RoundRobin>>),
+    Random(Arc<LoadBalancer<Random>>),
+}
+
+impl MeshLoadBalancer {
+    pub fn select(
+        &self,
+        key: &[u8],
+        max_iterations: usize,
+    ) -> Option<pingora_load_balancing::Backend> {
+        match self {
+            Self::RoundRobin(lb) => lb.select(key, max_iterations),
+            Self::Random(lb) => lb.select(key, max_iterations),
+        }
+    }
+}
+
 pub struct MeshProxy {
     pub config: Arc<Config>,
-    pub load_balancer: Arc<LoadBalancer<RoundRobin>>,
+    pub load_balancer: Arc<MeshLoadBalancer>,
     pub plugin_host: Arc<RwLock<NylonRingHost>>,
 }
 

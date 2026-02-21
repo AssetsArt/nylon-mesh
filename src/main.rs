@@ -34,13 +34,44 @@ fn main() {
         }
     };
 
-    let upstreams = config.upstreams.clone();
-    if upstreams.is_empty() {
+    let mut pingora_upstreams = Vec::new();
+    for u in config.upstreams.iter() {
+        match pingora_load_balancing::Backend::new_with_weight(u.address(), u.weight()) {
+            Ok(b) => pingora_upstreams.push(b),
+            Err(e) => error!("Failed to parse upstream {}: {}", u.address(), e),
+        }
+    }
+
+    if pingora_upstreams.is_empty() {
         error!("No upstreams configured in YAML.");
         std::process::exit(1);
     }
 
-    let load_balancer = LoadBalancer::try_from_iter(upstreams.into_iter()).unwrap();
+    // Prepare discovery and backend manager
+    let discovery = pingora_load_balancing::discovery::Static::new(
+        pingora_upstreams
+            .into_iter()
+            .collect::<std::collections::BTreeSet<_>>(),
+    );
+    let backends = pingora_load_balancing::Backends::new(discovery);
+
+    let load_balancer = match config
+        .load_balancer_algo
+        .as_ref()
+        .unwrap_or(&crate::config::LoadBalancerAlgorithm::RoundRobin)
+    {
+        crate::config::LoadBalancerAlgorithm::RoundRobin => {
+            let lb = LoadBalancer::<pingora_load_balancing::selection::RoundRobin>::from_backends(
+                backends,
+            );
+            proxy::MeshLoadBalancer::RoundRobin(Arc::new(lb))
+        }
+        crate::config::LoadBalancerAlgorithm::Random => {
+            let lb =
+                LoadBalancer::<pingora_load_balancing::selection::Random>::from_backends(backends);
+            proxy::MeshLoadBalancer::Random(Arc::new(lb))
+        }
+    };
 
     // Initialize Plugin Host
     let mut plugin_host = NylonRingHost::new();

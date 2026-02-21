@@ -15,6 +15,9 @@ tls:
       key_path: "key.pem"
 upstreams:
   - "127.0.0.1:3001"
+  - address: "127.0.0.1:3002"
+    weight: 5
+load_balancer_algo: "round_robin"
 redis_url: ""
 cache:
   tier1_capacity: 10000

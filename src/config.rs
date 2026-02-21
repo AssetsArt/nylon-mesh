@@ -2,13 +2,44 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
+    pub load_balancer_algo: Option<LoadBalancerAlgorithm>,
     pub listen: Option<String>,
     pub tls: Option<TlsConfig>,
-    pub upstreams: Vec<String>,
+    pub upstreams: Vec<UpstreamConfig>,
     pub redis_url: Option<String>,
     pub cache: Option<CacheConfig>,
     pub bypass: Option<BypassConfig>,
     pub plugins: Option<Vec<PluginConfig>>,
+}
+
+#[derive(Debug, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum LoadBalancerAlgorithm {
+    RoundRobin,
+    Random,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum UpstreamConfig {
+    Simple(String),
+    Weighted { address: String, weight: usize },
+}
+
+impl UpstreamConfig {
+    pub fn address(&self) -> &str {
+        match self {
+            Self::Simple(addr) => addr,
+            Self::Weighted { address, .. } => address,
+        }
+    }
+
+    pub fn weight(&self) -> usize {
+        match self {
+            Self::Simple(_) => 1,
+            Self::Weighted { weight, .. } => *weight,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
