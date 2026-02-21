@@ -82,14 +82,8 @@ const frameworks = [
 .fw-icon {
   width: 44px;
   height: 44px;
-  opacity: 0.5;
-  transition: all 0.3s ease;
-  filter: grayscale(80%);
-}
-
-.fw-item:hover .fw-icon {
   opacity: 1;
-  filter: grayscale(0%);
+  transition: all 0.3s ease;
 }
 
 .fw-icon :deep(svg) {
