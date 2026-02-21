@@ -7,7 +7,10 @@
     "nylon-mesh": "bin/nylon-mesh.js"
   },
   "scripts": {
-    "build": "cargo build --release"
+    "build": "cargo build --release",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "keywords": [
     "proxy",
@@ -15,5 +18,9 @@
     "pingora"
   ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.28"
+  }
 }
