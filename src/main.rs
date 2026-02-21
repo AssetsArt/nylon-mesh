@@ -65,11 +65,15 @@ fn main() {
             let lb = LoadBalancer::<pingora_load_balancing::selection::RoundRobin>::from_backends(
                 backends,
             );
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(lb.update()).unwrap();
             proxy::MeshLoadBalancer::RoundRobin(Arc::new(lb))
         }
         crate::config::LoadBalancerAlgorithm::Random => {
             let lb =
                 LoadBalancer::<pingora_load_balancing::selection::Random>::from_backends(backends);
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(lb.update()).unwrap();
             proxy::MeshLoadBalancer::Random(Arc::new(lb))
         }
     };
@@ -115,6 +119,8 @@ fn main() {
 
     server.configuration = Arc::new(ServerConf {
         daemon: false,
+        grace_period_seconds: Some(0),
+        graceful_shutdown_timeout_seconds: Some(0),
         threads: 10,
         ..Default::default()
     });

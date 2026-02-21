@@ -97,7 +97,12 @@ impl ProxyHttp for MeshProxy {
         let upstream = self
             .load_balancer
             .select(b"", 256) // Use empty hash for round robin
-            .unwrap();
+            .ok_or_else(|| {
+                pingora::Error::explain(
+                    pingora::ErrorType::HTTPStatus(502),
+                    "No upstream available",
+                )
+            })?;
 
         let peer = HttpPeer::new(upstream.clone(), false, String::new());
         Ok(Box::new(peer))
