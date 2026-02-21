@@ -185,49 +185,81 @@ impl ProxyHttp for MeshProxy {
             return Ok(false);
         }
 
+        let accept_encoding = req_header
+            .headers
+            .get("accept-encoding")
+            .map(|hv| hv.to_str().unwrap_or(""))
+            .unwrap_or("");
+
+        let mut encodings_to_check = Vec::new();
+        if accept_encoding.contains("zstd") {
+            encodings_to_check.push("zstd");
+        }
+        if accept_encoding.contains("br") {
+            encodings_to_check.push("br");
+        }
+        if accept_encoding.contains("gzip") {
+            encodings_to_check.push("gzip");
+        }
+        if accept_encoding.contains("deflate") {
+            encodings_to_check.push("deflate");
+        }
+        encodings_to_check.push("");
+
         let query = req_header
             .uri
             .query()
             .map_or(String::new(), |q| format!("?{}", q));
-        let cache_key = format!("{}{}{}", host, uri, query);
-        ctx.cache_key = cache_key.clone();
+        let base_cache_key = format!("{}{}{}", host, uri, query);
 
-        // Tier 1 LRU
-        if let Some((mut header, body)) = self.tier1_cache.get(&cache_key).await {
-            debug!("Tier 1 HIT: {}", cache_key);
-            let _ = header.insert_header("X-Cache-Tier", "1");
-            session
-                .write_response_header(Box::new(header), true)
-                .await?;
-            session.write_response_body(Some(body), true).await?;
-            return Ok(true);
-        }
+        for enc in encodings_to_check.iter() {
+            let mut cache_key = base_cache_key.clone();
+            if !enc.is_empty() {
+                cache_key.push_str(&format!(":{}", enc));
+            }
+            ctx.cache_key = cache_key.clone(); // The last one (which is "") will be used for upstream proxying cache miss
 
-        // Tier 2 Redis (Only if redis_url is configured)
-        if let Some(redis_url) = &self.config.redis_url {
-            if !redis_url.is_empty() {
-                if let Some(mut conn) = get_redis_conn(redis_url).await {
-                    use redis::AsyncCommands;
-                    let cached_result: redis::RedisResult<Option<Vec<u8>>> =
-                        conn.get::<&str, Option<Vec<u8>>>(&cache_key).await;
+            // Tier 1 LRU
+            if let Some((mut header, body)) = self.tier1_cache.get(&cache_key).await {
+                debug!("Tier 1 HIT: {}", cache_key);
+                let _ = header.insert_header("X-Cache-Tier", "1");
+                session
+                    .write_response_header(Box::new(header), true)
+                    .await?;
+                session.write_response_body(Some(body), true).await?;
+                return Ok(true);
+            }
 
-                    if let Ok(Some(html_bytes)) = cached_result {
-                        debug!("Tier 2 HIT: {}", cache_key);
-                        let bytes = Bytes::from(html_bytes);
+            // Tier 2 Redis (Only if redis_url is configured)
+            if let Some(redis_url) = &self.config.redis_url {
+                if !redis_url.is_empty() {
+                    if let Some(mut conn) = get_redis_conn(redis_url).await {
+                        use redis::AsyncCommands;
+                        let cached_result: redis::RedisResult<Option<Vec<u8>>> =
+                            conn.get::<&str, Option<Vec<u8>>>(&cache_key).await;
 
-                        if let Ok(mut header) = ResponseHeader::build(StatusCode::OK, None) {
-                            let _ =
-                                header.insert_header("Content-Type", "text/html; charset=utf-8");
-                            let _ = header.insert_header("Content-Length", bytes.len().to_string());
+                        if let Ok(Some(html_bytes)) = cached_result {
+                            debug!("Tier 2 HIT: {}", cache_key);
+                            let bytes = Bytes::from(html_bytes);
 
-                            self.tier1_cache
-                                .insert(cache_key.clone(), (header.clone(), bytes.clone()))
-                                .await;
-                            let _ = header.insert_header("X-Cache-Tier", "2");
+                            if let Ok(mut header) = ResponseHeader::build(StatusCode::OK, None) {
+                                let _ = header
+                                    .insert_header("Content-Type", "text/html; charset=utf-8");
+                                let _ =
+                                    header.insert_header("Content-Length", bytes.len().to_string());
+                                if !enc.is_empty() {
+                                    let _ = header.insert_header("Content-Encoding", *enc);
+                                }
 
-                            let _ = session.write_response_header(Box::new(header), true).await;
-                            let _ = session.write_response_body(Some(bytes), true).await;
-                            return Ok(true);
+                                self.tier1_cache
+                                    .insert(cache_key.clone(), (header.clone(), bytes.clone()))
+                                    .await;
+                                let _ = header.insert_header("X-Cache-Tier", "2");
+
+                                let _ = session.write_response_header(Box::new(header), true).await;
+                                let _ = session.write_response_body(Some(bytes), true).await;
+                                return Ok(true);
+                            }
                         }
                     }
                 }
@@ -304,7 +336,7 @@ impl ProxyHttp for MeshProxy {
             }
 
             if end_of_stream {
-                let cache_key = ctx.cache_key.clone();
+                let mut cache_key = ctx.cache_key.clone();
                 let html_bytes = Bytes::from(ctx.response_body.clone());
                 let redis_url_opt = self.config.redis_url.clone();
                 let t2_ttl = self
@@ -316,6 +348,16 @@ impl ProxyHttp for MeshProxy {
 
                 if let Some(mut header) = ctx.response_header.clone() {
                     let _ = header.insert_header("Content-Length", html_bytes.len().to_string());
+
+                    let content_encoding = header
+                        .headers
+                        .get("Content-Encoding")
+                        .map(|hv| hv.to_str().unwrap_or(""))
+                        .unwrap_or("");
+
+                    if !content_encoding.is_empty() {
+                        cache_key.push_str(&format!(":{}", content_encoding));
+                    }
 
                     let tier1_cache = self.tier1_cache.clone();
                     tokio::spawn(async move {
