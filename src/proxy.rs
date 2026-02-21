@@ -3,7 +3,6 @@ use bytes::Bytes;
 use http::StatusCode;
 use moka::future::Cache;
 use nylon_ring_host::NylonRingHost;
-use once_cell::sync::Lazy;
 use pingora::Result;
 use pingora::http::ResponseHeader;
 use pingora::upstreams::peer::HttpPeer;
@@ -18,14 +17,6 @@ use tokio::sync::RwLock;
 use tracing::{debug, error};
 
 use crate::config::Config;
-
-// Setup a global Cache that can be configured on start
-static TIER1_CACHE: Lazy<Cache<String, (ResponseHeader, Bytes)>> = Lazy::new(|| {
-    Cache::builder()
-        .max_capacity(10000)
-        .time_to_live(Duration::from_secs(3))
-        .build()
-});
 
 static REDIS_CONN: tokio::sync::OnceCell<redis::aio::MultiplexedConnection> =
     tokio::sync::OnceCell::const_new();
@@ -75,6 +66,7 @@ pub struct MeshProxy {
     pub config: Arc<Config>,
     pub load_balancer: Arc<MeshLoadBalancer>,
     pub plugin_host: Arc<RwLock<NylonRingHost>>,
+    pub tier1_cache: Cache<String, (ResponseHeader, Bytes)>,
 }
 
 pub struct ProxyCtx {
@@ -183,7 +175,7 @@ impl ProxyHttp for MeshProxy {
         ctx.cache_key = cache_key.clone();
 
         // Tier 1 LRU
-        if let Some((mut header, body)) = TIER1_CACHE.get(&cache_key).await {
+        if let Some((mut header, body)) = self.tier1_cache.get(&cache_key).await {
             debug!("Tier 1 HIT: {}", cache_key);
             let _ = header.insert_header("X-Cache-Tier", "1");
             session
@@ -210,7 +202,7 @@ impl ProxyHttp for MeshProxy {
                                 header.insert_header("Content-Type", "text/html; charset=utf-8");
                             let _ = header.insert_header("Content-Length", bytes.len().to_string());
 
-                            TIER1_CACHE
+                            self.tier1_cache
                                 .insert(cache_key.clone(), (header.clone(), bytes.clone()))
                                 .await;
                             let _ = header.insert_header("X-Cache-Tier", "2");
@@ -276,8 +268,9 @@ impl ProxyHttp for MeshProxy {
                 if let Some(mut header) = ctx.response_header.clone() {
                     let _ = header.insert_header("Content-Length", html_bytes.len().to_string());
 
+                    let tier1_cache = self.tier1_cache.clone();
                     tokio::spawn(async move {
-                        TIER1_CACHE
+                        tier1_cache
                             .insert(cache_key.clone(), (header, html_bytes.clone()))
                             .await;
 

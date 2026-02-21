@@ -84,10 +84,26 @@ fn main() {
         }
     }
 
+    let tier1_capacity = config
+        .cache
+        .as_ref()
+        .and_then(|c| c.tier1_capacity)
+        .unwrap_or(10000);
+    let tier1_ttl = config
+        .cache
+        .as_ref()
+        .and_then(|c| c.tier1_ttl_seconds)
+        .unwrap_or(3);
+    let tier1_cache = moka::future::Cache::builder()
+        .max_capacity(tier1_capacity as u64)
+        .time_to_live(std::time::Duration::from_secs(tier1_ttl as u64))
+        .build();
+
     let proxy = MeshProxy {
         config: config.clone(),
         load_balancer: Arc::new(load_balancer),
         plugin_host: Arc::new(RwLock::new(plugin_host)),
+        tier1_cache,
     };
 
     let opt = Opt::parse_args();
