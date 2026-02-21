@@ -1,7 +1,7 @@
 {
   "name": "nylon-mesh",
   "version": "0.1.0",
-  "description": "Nylon Mesh - High performance proxy wrapper for pingora",
+  "description": "Nylon Mesh - Cache Everything. Scale Instantly.",
   "main": "index.js",
   "bin": {
     "nylon-mesh": "bin/nylon-mesh.js"
