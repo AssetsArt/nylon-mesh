@@ -15,7 +15,6 @@ pub struct Config {
     pub cache: Option<CacheConfig>,
     pub bypass: Option<BypassConfig>,
     pub cache_control: Option<Vec<CacheControlConfig>>,
-    pub plugins: Option<Vec<PluginConfig>>,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq)]
@@ -79,14 +78,6 @@ pub struct CacheControlConfig {
     pub value: String,
     pub paths: Option<Vec<String>>,
     pub extensions: Option<Vec<String>>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct PluginConfig {
-    pub name: String,
-    pub file: String,
-    pub host: Option<String>,
-    pub path: Option<String>,
 }
 
 impl Config {

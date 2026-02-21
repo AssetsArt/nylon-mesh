@@ -2,14 +2,12 @@ pub mod config;
 pub mod proxy;
 pub mod tls_accept;
 
-use nylon_ring_host::NylonRingHost;
 use pingora_core::server::Server;
 use pingora_core::server::configuration::{Opt, ServerConf};
 use pingora_load_balancing::LoadBalancer;
 use pingora_proxy::http_proxy_service;
 use std::env;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 use tracing::{error, info};
 
 use config::Config;
@@ -106,17 +104,6 @@ fn main() {
         }
     };
 
-    // Initialize Plugin Host
-    let mut plugin_host = NylonRingHost::new();
-    if let Some(plugins) = &config.plugins {
-        for p in plugins {
-            info!("Loading plugin: {} from {}", p.name, p.file);
-            if let Err(e) = plugin_host.load(&p.name, &p.file) {
-                error!("Failed to load plugin {}: {}", p.name, e);
-            }
-        }
-    }
-
     let tier1_capacity = config
         .cache
         .as_ref()
@@ -135,7 +122,6 @@ fn main() {
     let proxy = MeshProxy {
         config: config.clone(),
         load_balancer: Arc::new(load_balancer),
-        plugin_host: Arc::new(RwLock::new(plugin_host)),
         tier1_cache,
     };
 

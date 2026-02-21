@@ -2,7 +2,6 @@ use async_trait::async_trait;
 use bytes::Bytes;
 use http::StatusCode;
 use moka::future::Cache;
-use nylon_ring_host::NylonRingHost;
 use pingora::Result;
 use pingora::http::ResponseHeader;
 use pingora::upstreams::peer::HttpPeer;
@@ -13,7 +12,6 @@ use pingora_load_balancing::{
 use pingora_proxy::{ProxyHttp, Session};
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::RwLock;
 use tracing::{debug, error};
 
 use crate::config::Config;
@@ -65,7 +63,6 @@ impl MeshLoadBalancer {
 pub struct MeshProxy {
     pub config: Arc<Config>,
     pub load_balancer: Arc<MeshLoadBalancer>,
-    pub plugin_host: Arc<RwLock<NylonRingHost>>,
     pub tier1_cache: Cache<String, (ResponseHeader, Bytes)>,
 }
 
@@ -160,34 +157,6 @@ impl ProxyHttp for MeshProxy {
             .get("Host")
             .map(|v| v.to_str().unwrap_or("localhost"))
             .unwrap_or("localhost");
-
-        // Execute plugins first
-        if let Some(plugins) = &self.config.plugins {
-            let host_guard = self.plugin_host.read().await;
-            for p in plugins {
-                let mut should_run = true;
-                if let Some(h) = &p.host {
-                    if h != host {
-                        should_run = false;
-                    }
-                }
-                if let Some(path) = &p.path {
-                    if !uri.starts_with(path) {
-                        should_run = false;
-                    }
-                }
-
-                if should_run {
-                    if let Some(plugin) = host_guard.plugin(&p.name) {
-                        let payload = format!("{{\"host\":\"{}\",\"uri\":\"{}\"}}", host, uri);
-                        // Fire and forget execution
-                        if let Err(e) = plugin.call("request_filter", payload.as_bytes()).await {
-                            error!("Plugin {} error: {}", p.name, e);
-                        }
-                    }
-                }
-            }
-        }
 
         // Cache bypass logic
         let mut bypass_cache = false;

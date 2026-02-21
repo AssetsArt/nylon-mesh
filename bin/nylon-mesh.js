@@ -23,7 +23,7 @@ upstreams:
   # - address: "127.0.0.1:3002"
     # weight: 5
 load_balancer_algo: "round_robin"
-# redis_url: "redis://localhost:6379"
+redis_url: "redis://localhost:6379"
 cache:
   tier1_capacity: 10000
   tier1_ttl_seconds: 3
@@ -35,7 +35,14 @@ bypass:
   extensions:
     - ".ico"
     - ".png"
-plugins: []
+# cache_control:
+#   - value: "public, max-age=31536000, immutable"
+#     paths:
+#       - "/_next/static/"
+#     extensions:
+#       - ".ico"
+#       - ".png"
+#       - ".jpg"
 `;
 
 if (command === 'init') {
