@@ -192,14 +192,14 @@ impl ProxyHttp for MeshProxy {
             .unwrap_or("");
 
         let mut encodings_to_check = Vec::new();
+        if accept_encoding.contains("gzip") {
+            encodings_to_check.push("gzip");
+        }
         if accept_encoding.contains("zstd") {
             encodings_to_check.push("zstd");
         }
         if accept_encoding.contains("br") {
             encodings_to_check.push("br");
-        }
-        if accept_encoding.contains("gzip") {
-            encodings_to_check.push("gzip");
         }
         if accept_encoding.contains("deflate") {
             encodings_to_check.push("deflate");
