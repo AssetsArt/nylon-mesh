@@ -119,10 +119,17 @@ fn main() {
         .time_to_live(std::time::Duration::from_secs(tier1_ttl as u64))
         .build();
 
+    let mut encoding_hits = std::collections::HashMap::new();
+    encoding_hits.insert("zstd", std::sync::atomic::AtomicU64::new(0));
+    encoding_hits.insert("br", std::sync::atomic::AtomicU64::new(0));
+    encoding_hits.insert("gzip", std::sync::atomic::AtomicU64::new(0));
+    encoding_hits.insert("deflate", std::sync::atomic::AtomicU64::new(0));
+
     let proxy = MeshProxy {
         config: config.clone(),
         load_balancer: Arc::new(load_balancer),
         tier1_cache,
+        encoding_hits: Arc::new(encoding_hits),
     };
 
     let opt = Opt::parse_args();

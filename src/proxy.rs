@@ -64,6 +64,7 @@ pub struct MeshProxy {
     pub config: Arc<Config>,
     pub load_balancer: Arc<MeshLoadBalancer>,
     pub tier1_cache: Cache<String, (ResponseHeader, Bytes)>,
+    pub encoding_hits: Arc<std::collections::HashMap<&'static str, std::sync::atomic::AtomicU64>>,
 }
 
 pub struct ProxyCtx {
@@ -204,13 +205,33 @@ impl ProxyHttp for MeshProxy {
         if accept_encoding.contains("deflate") {
             encodings_to_check.push("deflate");
         }
-        encodings_to_check.push("");
+        encodings_to_check.push(""); // Always check uncompressed as fallback
+
+        // Sort encodings based on last hit time (newest hits first)
+        encodings_to_check.sort_by(|a, b| {
+            let hit_time_a = self
+                .encoding_hits
+                .get(a)
+                .map(|v| v.load(std::sync::atomic::Ordering::Relaxed))
+                .unwrap_or(0);
+            let hit_time_b = self
+                .encoding_hits
+                .get(b)
+                .map(|v| v.load(std::sync::atomic::Ordering::Relaxed))
+                .unwrap_or(0);
+            hit_time_b.cmp(&hit_time_a) // Descending order (newest first)
+        });
 
         let query = req_header
             .uri
             .query()
             .map_or(String::new(), |q| format!("?{}", q));
         let base_cache_key = format!("{}{}{}", host, uri, query);
+
+        let now_secs = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or(std::time::Duration::from_secs(0))
+            .as_secs();
 
         for enc in encodings_to_check.iter() {
             let mut cache_key = base_cache_key.clone();
@@ -222,6 +243,10 @@ impl ProxyHttp for MeshProxy {
             // Tier 1 LRU
             if let Some((mut header, body)) = self.tier1_cache.get(&cache_key).await {
                 debug!("Tier 1 HIT: {}", cache_key);
+                if let Some(timestamp) = self.encoding_hits.get(*enc) {
+                    timestamp.store(now_secs, std::sync::atomic::Ordering::Relaxed);
+                }
+
                 let _ = header.insert_header("X-Cache-Tier", "1");
                 session
                     .write_response_header(Box::new(header), true)
@@ -240,6 +265,9 @@ impl ProxyHttp for MeshProxy {
 
                         if let Ok(Some(html_bytes)) = cached_result {
                             debug!("Tier 2 HIT: {}", cache_key);
+                            if let Some(timestamp) = self.encoding_hits.get(*enc) {
+                                timestamp.store(now_secs, std::sync::atomic::Ordering::Relaxed);
+                            }
                             let bytes = Bytes::from(html_bytes);
 
                             if let Ok(mut header) = ResponseHeader::build(StatusCode::OK, None) {
