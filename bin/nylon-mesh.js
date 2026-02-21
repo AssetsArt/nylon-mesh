@@ -7,6 +7,7 @@ const args = process.argv.slice(2);
 const command = args[0] || 'start';
 
 const DEFAULT_YAML = `listen: "0.0.0.0:3000"
+# threads: 4
 # tls:
 #   listen: "0.0.0.0:443"
 #   certs:

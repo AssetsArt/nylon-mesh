@@ -117,11 +117,17 @@ fn main() {
         std::process::exit(1);
     });
 
+    let threads = config.threads.unwrap_or_else(|| {
+        std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(1)
+    });
+
     server.configuration = Arc::new(ServerConf {
         daemon: false,
         grace_period_seconds: Some(0),
         graceful_shutdown_timeout_seconds: Some(0),
-        threads: 10,
+        threads,
         ..Default::default()
     });
     server.bootstrap();

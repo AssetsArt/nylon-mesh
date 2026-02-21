@@ -1,3 +1,4 @@
+# threads: 10
 listen: "0.0.0.0:3000"
 # tls:
 #   listen: "0.0.0.0:443"
