@@ -55,6 +55,7 @@ fn main() {
     );
     let backends = pingora_load_balancing::Backends::new(discovery);
 
+    // print!("config: {:?}", config);
     let load_balancer = match config
         .load_balancer_algo
         .as_ref()
