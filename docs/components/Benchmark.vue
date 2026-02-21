@@ -74,10 +74,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="benchmark-container fade-in-up">
+  <div style="text-align: center;">
     <div class="glow-bg pulse"></div>
     <div class="benchmark-content">
-      <div class="badge bounce-in">🚀 PERFORMANCE BENCHMARK</div>
       <h2 class="title slide-in-bottom">Blazing Fast on Edge</h2>
       <p class="subtitle slide-in-bottom delay-1">
         Tested with <code>oha</code> (120 concurrent connections) on an <br/>
@@ -187,17 +186,6 @@ Summary:
 </template>
 
 <style scoped>
-.benchmark-container {
-  position: relative;
-  margin: 4rem 0;
-  padding: 3rem 1.5rem;
-  text-align: center;
-  border-radius: 24px;
-  overflow: hidden;
-  background: var(--vp-c-bg-soft);
-  border: 1px solid var(--vp-c-divider);
-}
-
 .glow-bg {
   position: absolute;
   top: -50%;
@@ -271,7 +259,6 @@ Summary:
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 800px;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
@@ -513,17 +500,6 @@ Summary:
   color: #3fb950;
   font-weight: bold;
   text-shadow: 0 0 10px rgba(63, 185, 80, 0.5);
-}
-
-/* Animations */
-.fade-in-up {
-  opacity: 0;
-  animation: fadeInUp 0.8s ease-out forwards;
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .pulse {
