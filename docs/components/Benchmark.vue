@@ -1,59 +1,112 @@
+<script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+
+const reqSec = ref(0)
+const latency = ref("0.00")
+const transfer = ref(0)
+let animationId
+
+onMounted(() => {
+  const targetReq = 99991
+  const targetLat = 1.20
+  const targetTrans = 291
+  const duration = 2000
+  let startTime = null
+
+  const animate = (timestamp) => {
+    if (!startTime) startTime = timestamp
+    const elapsed = timestamp - Math.max(startTime, 0)
+    
+    if (elapsed < duration) {
+      // Phase 1: Count up
+      const progress = elapsed / duration
+      const easeProgress = 1 - Math.pow(1 - progress, 4) // easeOutQuart
+      
+      reqSec.value = Math.floor(easeProgress * targetReq)
+      latency.value = (easeProgress * targetLat).toFixed(2)
+      transfer.value = Math.floor(easeProgress * targetTrans)
+    } else {
+      // Phase 2: Continuous fluctuation (Live Dashboard Feel)
+      const timeInSec = timestamp / 1000
+      
+      // Use sine/cosine waves for smooth, "random" looking noise
+      const reqNoise = Math.sin(timeInSec * 2) * 800 + Math.cos(timeInSec * 3.5) * 500
+      reqSec.value = Math.floor(targetReq + reqNoise)
+      
+      const latNoise = Math.sin(timeInSec * 3) * 0.08 + Math.cos(timeInSec * 1.8) * 0.05
+      latency.value = Math.max(0.8, targetLat + latNoise).toFixed(2)
+      
+      const transNoise = Math.sin(timeInSec * 2.5) * 6 + Math.cos(timeInSec * 4) * 4
+      transfer.value = Math.floor(targetTrans + transNoise)
+    }
+
+    animationId = requestAnimationFrame(animate)
+  }
+
+  animationId = requestAnimationFrame(animate)
+})
+
+onUnmounted(() => {
+  if (animationId) cancelAnimationFrame(animationId)
+})
+</script>
+
 <template>
-  <div class="benchmark-container">
-    <div class="glow-bg"></div>
+  <div class="benchmark-container fade-in-up">
+    <div class="glow-bg pulse"></div>
     <div class="benchmark-content">
-      <div class="badge">🚀 PERFORMANCE BENCHMARK</div>
-      <h2 class="title">Blazing Fast on Edge</h2>
-      <p class="subtitle">
+      <div class="badge bounce-in">🚀 PERFORMANCE BENCHMARK</div>
+      <h2 class="title slide-in-bottom">Blazing Fast on Edge</h2>
+      <p class="subtitle slide-in-bottom delay-1">
         Tested with <code>oha</code> (120 concurrent connections) on an <br/>
         <strong>Apple M1 Pro (10-core CPU, 16GB RAM)</strong>.
       </p>
 
-      <div class="stats-grid">
-        <div class="stat-card prime">
+      <div class="stats-grid slide-in-bottom delay-2">
+        <div class="stat-card prime shimmer">
           <span class="stat-label">Requests / Second</span>
-          <span class="stat-value highlight">99,130</span>
+          <span class="stat-value highlight">{{ reqSec.toLocaleString() }}</span>
         </div>
         
         <div class="stat-group">
-          <div class="stat-card">
+          <div class="stat-card hover-glow">
             <span class="stat-label">Average Latency</span>
-            <span class="stat-value">1.20 <small>ms</small></span>
+            <span class="stat-value">{{ latency }} <small>ms</small></span>
           </div>
-          <div class="stat-card">
+          <div class="stat-card hover-glow">
             <span class="stat-label">Success Rate</span>
             <span class="stat-value">100<small>%</small></span>
           </div>
-          <div class="stat-card">
+          <div class="stat-card hover-glow">
             <span class="stat-label">Transfer Speed</span>
-            <span class="stat-value">769<small>MB/s</small></span>
+            <span class="stat-value">{{ transfer }}<small>MB/s</small></span>
           </div>
-          <div class="stat-card">
+          <div class="stat-card hover-glow">
             <span class="stat-label">Total Data</span>
-            <span class="stat-value">7.52 <small>GB</small></span>
+            <span class="stat-value">2.84 <small>GB</small></span>
           </div>
         </div>
       </div>
 
-      <div class="terminal">
+      <div class="terminal slide-in-bottom delay-3">
         <div class="terminal-header">
           <span class="dot red"></span>
           <span class="dot yellow"></span>
           <span class="dot green"></span>
           <span class="term-title">oha -c 120 -z 10s http://localhost:3000</span>
         </div>
-        <pre class="terminal-body">
+        <pre class="terminal-body type-window">
 Summary:
   Success rate:	100.00%
-  Total:	10002.2002 ms
-  Slowest:	11.1898 ms
-  Fastest:	0.0371 ms
-  Average:	1.2081 ms
-  Requests/sec:	<span class="glow-text">99130.7892</span>
+  Total:	10002.3763 ms
+  Slowest:	11.1073 ms
+  Fastest:	0.0287 ms
+  Average:	1.1976 ms
+  Requests/sec:	<span class="glow-text">99991.7390</span>
 
-  Total data:	7.52 GiB
-  Size/request:	7.95 KiB
-  Size/sec:	769.89 MiB
+  Total data:	2.84 GiB
+  Size/request:	2.98 KiB
+  Size/sec:	290.75 MiB
         </pre>
       </div>
     </div>
@@ -135,12 +188,12 @@ Summary:
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+.hover-glow:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.15);
   border-color: var(--vp-c-brand-1);
 }
 
@@ -148,6 +201,8 @@ Summary:
   padding: 3.5rem;
   background: linear-gradient(145deg, var(--vp-c-bg-mute), rgba(16, 185, 129, 0.05));
   border: 1px solid rgba(16, 185, 129, 0.2);
+  position: relative;
+  overflow: hidden;
 }
 
 .stat-label {
@@ -157,6 +212,7 @@ Summary:
   font-weight: 600;
   color: var(--vp-c-text-2);
   margin-bottom: 1rem;
+  z-index: 2;
 }
 
 .stat-value {
@@ -164,6 +220,7 @@ Summary:
   font-weight: 800;
   color: var(--vp-c-text-1);
   line-height: 1;
+  z-index: 2;
 }
 
 .stat-value small {
@@ -244,5 +301,75 @@ Summary:
   color: #3fb950;
   font-weight: bold;
   text-shadow: 0 0 10px rgba(63, 185, 80, 0.5);
+}
+
+/* Animations */
+.fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pulse {
+  animation: pulseGlow 4s infinite alternate;
+}
+
+@keyframes pulseGlow {
+  from { opacity: 0.6; transform: translateX(-50%) scale(0.95); }
+  to { opacity: 1; transform: translateX(-50%) scale(1.05); }
+}
+
+.bounce-in {
+  opacity: 0;
+  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  animation-delay: 0.3s;
+}
+
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.slide-in-bottom {
+  opacity: 0;
+  animation: slideInBottom 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes slideInBottom {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+.delay-3 { animation-delay: 0.6s; }
+
+.shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  animation: shimmer 3s infinite 2s;
+  z-index: 1;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 200%; }
 }
 </style>
