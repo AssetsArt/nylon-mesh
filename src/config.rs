@@ -3,6 +3,10 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub threads: Option<usize>,
+    pub grace_period_seconds: Option<u64>,
+    pub graceful_shutdown_timeout_seconds: Option<u64>,
+    pub liveness_path: Option<String>,
+    pub readiness_path: Option<String>,
     pub load_balancer_algo: Option<LoadBalancerAlgorithm>,
     pub listen: Option<String>,
     pub tls: Option<TlsConfig>,

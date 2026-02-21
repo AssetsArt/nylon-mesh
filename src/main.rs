@@ -15,6 +15,34 @@ use tracing::{error, info};
 use config::Config;
 use proxy::MeshProxy;
 
+use std::sync::atomic::{AtomicBool, Ordering};
+use tokio::signal;
+
+pub static IS_SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
+
+pub fn is_shutting_down() -> bool {
+    IS_SHUTTING_DOWN.load(Ordering::SeqCst)
+}
+
+// SIGTERM
+async fn try_shutdown() -> std::io::Result<()> {
+    #[cfg(unix)]
+    if let Ok(mut stream) = signal::unix::signal(signal::unix::SignalKind::terminate()) {
+        stream.recv().await;
+    }
+    Ok(())
+}
+
+async fn shutdown(shutdown_timeout: u64) {
+    println!("\n🛑 Shutting down...");
+    IS_SHUTTING_DOWN.store(true, Ordering::SeqCst);
+    // countdown
+    for i in (0..shutdown_timeout).rev() {
+        println!("Shutting down in {} seconds", i);
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    }
+}
+
 fn main() {
     tracing_subscriber::fmt().init();
 
@@ -123,10 +151,13 @@ fn main() {
             .unwrap_or(1)
     });
 
+    let grace_period_seconds = config.grace_period_seconds.unwrap_or(0);
+    let graceful_shutdown_timeout_seconds = config.graceful_shutdown_timeout_seconds.unwrap_or(0);
+
     server.configuration = Arc::new(ServerConf {
         daemon: false,
-        grace_period_seconds: Some(0),
-        graceful_shutdown_timeout_seconds: Some(0),
+        grace_period_seconds: Some(grace_period_seconds),
+        graceful_shutdown_timeout_seconds: Some(graceful_shutdown_timeout_seconds),
         threads,
         ..Default::default()
     });
@@ -154,6 +185,30 @@ fn main() {
     }
 
     server.add_service(proxy_service);
+
+    let shutdown_timeout = config.graceful_shutdown_timeout_seconds.unwrap_or(0);
+    std::thread::spawn(move || {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+
+        rt.block_on(async move {
+            // Wait for shutdown signal
+            tokio::select! {
+                _ = signal::ctrl_c() => {
+                    println!("From ctrl_c");
+                    shutdown(shutdown_timeout).await;
+                },
+                _ = try_shutdown() => {
+                    println!("From try_shutdown");
+                    shutdown(shutdown_timeout).await;
+                },
+            }
+            println!("✅ Shutdown complete");
+        });
+    });
+
     info!("Starting nylon-mesh proxy server...");
     server.run_forever();
 }

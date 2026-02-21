@@ -111,6 +111,49 @@ impl ProxyHttp for MeshProxy {
     async fn request_filter(&self, session: &mut Session, ctx: &mut Self::CTX) -> Result<bool> {
         let req_header = session.req_header();
         let uri = req_header.uri.path();
+
+        let liveness_path = self.config.liveness_path.as_deref().unwrap_or("/live");
+        let readiness_path = self.config.readiness_path.as_deref().unwrap_or("/ready");
+
+        // Liveness probe
+        if uri == liveness_path {
+            let mut header = ResponseHeader::build(StatusCode::OK, None).unwrap();
+            let _ = header.insert_header("Content-Length", "2");
+            session
+                .write_response_header(Box::new(header), true)
+                .await?;
+            session
+                .write_response_body(Some(Bytes::from("OK")), true)
+                .await?;
+            return Ok(true);
+        }
+
+        // Readiness probe
+        if uri == readiness_path {
+            if crate::is_shutting_down() {
+                let msg = "Service is shutting down";
+                let mut header =
+                    ResponseHeader::build(StatusCode::SERVICE_UNAVAILABLE, None).unwrap();
+                let _ = header.insert_header("Content-Length", msg.len().to_string());
+                session
+                    .write_response_header(Box::new(header), true)
+                    .await?;
+                session
+                    .write_response_body(Some(Bytes::from(msg)), true)
+                    .await?;
+            } else {
+                let mut header = ResponseHeader::build(StatusCode::OK, None).unwrap();
+                let _ = header.insert_header("Content-Length", "2");
+                session
+                    .write_response_header(Box::new(header), true)
+                    .await?;
+                session
+                    .write_response_body(Some(Bytes::from("OK")), true)
+                    .await?;
+            }
+            return Ok(true);
+        }
+
         let host = req_header
             .headers
             .get("Host")

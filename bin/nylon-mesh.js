@@ -6,8 +6,12 @@ const { spawnSync } = require('child_process');
 const args = process.argv.slice(2);
 const command = args[0] || 'start';
 
-const DEFAULT_YAML = `listen: "0.0.0.0:3000"
-# threads: 4
+const DEFAULT_YAML = `# threads: 10
+# liveness_path: "/_health/live"
+# readiness_path: "/_health/ready"
+# grace_period_seconds: 0
+# graceful_shutdown_timeout_seconds: 0
+listen: "0.0.0.0:3000"
 # tls:
 #   listen: "0.0.0.0:443"
 #   certs:
