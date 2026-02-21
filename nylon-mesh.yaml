@@ -27,4 +27,12 @@ bypass:
   extensions:
     - ".ico"
     - ".png"
+# cache_control:
+#   - value: "public, max-age=31536000, immutable"
+#     paths:
+#       - "/_next/static/"
+#     extensions:
+#       - ".ico"
+#       - ".png"
+#       - ".jpg"
 plugins: []

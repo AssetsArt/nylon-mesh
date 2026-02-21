@@ -270,10 +270,41 @@ impl ProxyHttp for MeshProxy {
 
     async fn response_filter(
         &self,
-        _session: &mut Session,
+        session: &mut Session,
         resp: &mut ResponseHeader,
         ctx: &mut Self::CTX,
     ) -> Result<()> {
+        let req_uri = session.req_header().uri.path();
+
+        if let Some(rules) = &self.config.cache_control {
+            for rule in rules {
+                let mut matches = false;
+                if let Some(paths) = &rule.paths {
+                    for p in paths {
+                        if req_uri.starts_with(p) {
+                            matches = true;
+                            break;
+                        }
+                    }
+                }
+                if !matches {
+                    if let Some(exts) = &rule.extensions {
+                        for ext in exts {
+                            if req_uri.ends_with(ext) {
+                                matches = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if matches {
+                    let _ = resp.remove_header("Cache-Control");
+                    let _ = resp.insert_header("Cache-Control", &rule.value);
+                    break;
+                }
+            }
+        }
+
         let content_type = resp
             .headers
             .get("Content-Type")

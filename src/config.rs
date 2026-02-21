@@ -14,6 +14,7 @@ pub struct Config {
     pub redis_url: Option<String>,
     pub cache: Option<CacheConfig>,
     pub bypass: Option<BypassConfig>,
+    pub cache_control: Option<Vec<CacheControlConfig>>,
     pub plugins: Option<Vec<PluginConfig>>,
 }
 
@@ -69,6 +70,13 @@ pub struct CacheConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct BypassConfig {
+    pub paths: Option<Vec<String>>,
+    pub extensions: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct CacheControlConfig {
+    pub value: String,
     pub paths: Option<Vec<String>>,
     pub extensions: Option<Vec<String>>,
 }
