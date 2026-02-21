@@ -1,0 +1,19 @@
+{
+  "name": "nylon-mesh",
+  "version": "0.1.0",
+  "description": "Nylon Mesh - High performance proxy wrapper for pingora",
+  "main": "index.js",
+  "bin": {
+    "nylon-mesh": "bin/nylon-mesh.js"
+  },
+  "scripts": {
+    "build": "cargo build --release"
+  },
+  "keywords": [
+    "proxy",
+    "nylon",
+    "pingora"
+  ],
+  "author": "",
+  "license": "ISC"
+}

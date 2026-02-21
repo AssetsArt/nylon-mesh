@@ -1,0 +1,22 @@
+listen: "0.0.0.0:3000"
+# tls:
+#   listen: "0.0.0.0:443"
+#   certs:
+#     - host: "default"
+#       cert_path: "cert.pem"
+#       key_path: "key.pem"
+upstreams:
+  - "127.0.0.1:3001"
+redis_url: ""
+cache:
+  tier1_capacity: 10000
+  tier1_ttl_seconds: 3
+  tier2_ttl_seconds: 60
+bypass:
+  paths:
+    - "/_next/"
+    - "/api/"
+  extensions:
+    - ".ico"
+    - ".png"
+plugins: []
