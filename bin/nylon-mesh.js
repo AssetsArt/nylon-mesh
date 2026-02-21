@@ -2,9 +2,13 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const https = require('https');
 
 const args = process.argv.slice(2);
 const command = args[0] || 'start';
+
+const REPO = 'AssetsArt/nylon-mesh';
+const BINARY_NAME = 'nylon-mesh';
 
 const DEFAULT_YAML = `# threads: 10
 # liveness_path: "/_health/live"
@@ -45,49 +49,161 @@ bypass:
 #       - ".jpg"
 `;
 
-if (command === 'init') {
-  const targetPath = path.join(process.cwd(), 'nylon-mesh.yaml');
-  if (fs.existsSync(targetPath)) {
-    console.error('nylon-mesh.yaml already exists.');
-    process.exit(1);
+function getPlatformString() {
+  const platform = process.platform;
+  const arch = process.arch;
+
+  let osStr = '';
+  switch (platform) {
+    case 'win32': osStr = 'windows'; break;
+    case 'darwin': osStr = 'macos'; break;
+    case 'linux': osStr = 'linux-gnu'; break; // Default to gnu, musl support can be added if statically linked or specify manually
+    default: throw new Error(`Unsupported platform: ${platform}`);
   }
-  fs.writeFileSync(targetPath, DEFAULT_YAML);
-  console.log('Created nylon-mesh.yaml!');
-  console.log('Run `npx nylon-mesh start` to start the proxy.');
-  process.exit(0);
+
+  let archStr = '';
+  switch (arch) {
+    case 'x64': archStr = 'x86_64'; break;
+    case 'arm64': archStr = 'aarch64'; break;
+    default: throw new Error(`Unsupported architecture: ${arch}`);
+  }
+
+  // Windows suffix
+  const ext = platform === 'win32' ? '.exe' : '';
+
+  // Format: nylon-mesh-{platform}-{arch}{ext}
+  return `nylon-mesh-${osStr}-${archStr}${ext}`;
 }
 
-if (command === 'start') {
-  const binaryPath = path.join(__dirname, '..', 'target', 'release', 'nylon-mesh');
-  const debugBinaryPath = path.join(__dirname, '..', 'target', 'debug', 'nylon-mesh');
+function httpsGet(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { 'User-Agent': 'nylon-mesh-cli' }, ...options }, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        resolve(httpsGet(res.headers.location, options));
+      } else if (res.statusCode === 200) {
+        resolve(res);
+      } else {
+        reject(new Error(`Failed with status code: ${res.statusCode}`));
+      }
+    }).on('error', reject);
+  });
+}
 
-  let exeToRun = binaryPath;
-  if (!fs.existsSync(binaryPath)) {
-    if (fs.existsSync(debugBinaryPath)) {
-      exeToRun = debugBinaryPath;
+async function getLatestReleaseVersion() {
+  try {
+    const res = await httpsGet(`https://api.github.com/repos/${REPO}/releases/latest`);
+    let data = '';
+    for await (const chunk of res) { data += chunk; }
+    const release = JSON.parse(data);
+    return release.tag_name;
+  } catch (err) {
+    console.error('Failed to fetch latest release from GitHub API.', err.message);
+    return null;
+  }
+}
+
+async function downloadBinary(targetPath) {
+  const version = await getLatestReleaseVersion();
+  if (!version) {
+    console.error('Could not determine latest version. Please build from source using `cargo build --release`.');
+    process.exit(1);
+  }
+
+  let platformName;
+  try {
+    platformName = getPlatformString();
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+
+  const downloadUrl = `https://github.com/${REPO}/releases/download/${version}/${platformName}`;
+  console.log(`Downloading ${platformName} (${version})...`);
+  console.log(`From: ${downloadUrl}`);
+
+  try {
+    const res = await httpsGet(downloadUrl);
+    const fileStream = fs.createWriteStream(targetPath);
+    await new Promise((resolve, reject) => {
+      res.pipe(fileStream);
+      res.on('error', reject);
+      fileStream.on('finish', () => {
+        fileStream.close();
+        resolve();
+      });
+    });
+    fs.chmodSync(targetPath, 0o755); // Make it executable
+    console.log('Download complete.');
+  } catch (err) {
+    console.error('Download failed:', err.message);
+    process.exit(1);
+  }
+}
+
+async function main() {
+  const localBinDir = path.join(__dirname, '..', 'bin');
+  const exeExt = process.platform === 'win32' ? '.exe' : '';
+  const downloadedBinaryPath = path.join(localBinDir, `${BINARY_NAME}-bin${exeExt}`);
+
+  if (command === 'init') {
+    const targetPath = path.join(process.cwd(), 'nylon-mesh.yaml');
+    if (fs.existsSync(targetPath)) {
+      console.error('nylon-mesh.yaml already exists.');
     } else {
-      console.error('Nylon Mesh binary not found. Please run `bun run build` or `cargo build` first.');
+      fs.writeFileSync(targetPath, DEFAULT_YAML);
+      console.log('Created nylon-mesh.yaml!');
+    }
+
+    if (!fs.existsSync(downloadedBinaryPath)) {
+      await downloadBinary(downloadedBinaryPath);
+    } else {
+      console.log('Binary already downloaded.');
+    }
+
+    console.log('Run `npx nylon-mesh start` to start the proxy.');
+    process.exit(0);
+  }
+
+  if (command === 'start') {
+    const targetReleasePath = path.join(__dirname, '..', 'target', 'release', `${BINARY_NAME}${exeExt}`);
+    const targetDebugPath = path.join(__dirname, '..', 'target', 'debug', `${BINARY_NAME}${exeExt}`);
+
+    let exeToRun = null;
+    if (fs.existsSync(downloadedBinaryPath)) {
+      exeToRun = downloadedBinaryPath;
+    } else if (fs.existsSync(targetReleasePath)) {
+      exeToRun = targetReleasePath;
+    } else if (fs.existsSync(targetDebugPath)) {
+      exeToRun = targetDebugPath;
+    } else {
+      console.log('Nylon Mesh binary not found. Downloading...');
+      await downloadBinary(downloadedBinaryPath);
+      exeToRun = downloadedBinaryPath;
+    }
+
+    let yamlPath = path.join(process.cwd(), 'nylon-mesh.yaml');
+    if (args[1]) {
+      yamlPath = path.resolve(process.cwd(), args[1]);
+    }
+
+    if (!fs.existsSync(yamlPath)) {
+      console.error(`Config file not found at ${yamlPath}. Run \`npx nylon-mesh init\` first.`);
       process.exit(1);
     }
+
+    console.log(`Starting Nylon Mesh with config: ${yamlPath}`);
+    const child = spawnSync(exeToRun, [yamlPath], { stdio: 'inherit' });
+    process.exit(child.status || 0);
   }
 
-  let yamlPath = path.join(process.cwd(), 'nylon-mesh.yaml');
-  if (args[1]) {
-    yamlPath = path.resolve(process.cwd(), args[1]);
-  }
-
-  if (!fs.existsSync(yamlPath)) {
-    console.error(`Config file not found at ${yamlPath}. Run \`npx nylon-mesh init\` first.`);
-    process.exit(1);
-  }
-
-  console.log(`Starting Nylon Mesh with config: ${yamlPath}`);
-  const child = spawnSync(exeToRun, [yamlPath], { stdio: 'inherit' });
-  process.exit(child.status || 0);
+  console.error(`Unknown command: ${command}`);
+  console.error(`Usage:`);
+  console.error(`  npx nylon-mesh init   - Create a default config file and download binary`);
+  console.error(`  npx nylon-mesh start  - Start the proxy server`);
+  process.exit(1);
 }
 
-console.error(`Unknown command: ${command}`);
-console.error(`Usage:`);
-console.error(`  npx nylon-mesh init   - Create a default config file`);
-console.error(`  npx nylon-mesh start  - Start the proxy server`);
-process.exit(1);
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
