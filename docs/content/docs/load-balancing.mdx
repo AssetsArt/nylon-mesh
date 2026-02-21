@@ -1,4 +1,7 @@
-# Load Balancing
+---
+title: Load Balancing
+description: Configure upstream routing with round-robin, random, and weighted algorithms.
+---
 
 Nylon Mesh uses [Pingora's](https://github.com/cloudflare/pingora) production-proven load balancing engine to route incoming HTTP requests across your upstream pool.
 
@@ -39,9 +42,9 @@ upstreams:
     weight: 2
 ```
 
-::: tip
+<Callout title="Tip" type="info">
 In this example, for every **12** requests the first server handles **10** while the second manages **2**. Use this to route more traffic to machines with stronger CPU/RAM.
-:::
+</Callout>
 
 ---
 
@@ -61,6 +64,6 @@ graceful_shutdown_timeout_seconds: 0
 | **Liveness** | `/_health/live` | Returns `200 OK` while the proxy process is healthy. |
 | **Readiness** | `/_health/ready` | Returns `200 OK` when ready to receive traffic. Returns `503` during graceful shutdown to drain connections. |
 
-::: warning
+<Callout title="Warning" type="warn">
 Health probe paths are handled natively by Nylon Mesh and **never** forwarded to your backend. Make sure these paths don't conflict with your application routes.
-:::
+</Callout>

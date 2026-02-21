@@ -8,9 +8,8 @@
   },
   "scripts": {
     "build": "cargo build --release",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:dev": "cd docs && bun run dev",
+    "docs:build": "cd docs && bun run build"
   },
   "keywords": [
     "proxy",
@@ -18,9 +17,5 @@
     "pingora"
   ],
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "vitepress": "^1.6.4",
-    "vue": "^3.5.28"
-  }
+  "license": "MIT"
 }

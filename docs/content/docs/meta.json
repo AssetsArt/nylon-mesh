@@ -1,0 +1,9 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "caching",
+    "load-balancing",
+    "configuration"
+  ]
+}

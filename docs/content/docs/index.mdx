@@ -1,4 +1,7 @@
-# Getting Started
+---
+title: Getting Started
+description: Install and run Nylon Mesh in under 2 minutes.
+---
 
 **Nylon Mesh** is a blazing-fast edge proxy built to solve the headaches of caching for modern SSR frameworks.
 
@@ -20,10 +23,10 @@ Nylon Mesh is written in **Rust** for maximum performance. Compile and run direc
 cargo build --release
 ```
 
-Or install via npm into your project:
+Or install via bun into your project:
 
 ```bash
-npm install nylon-mesh
+bun add nylon-mesh
 ```
 
 ## Initialization
@@ -50,6 +53,6 @@ Or via the CLI wrapper:
 bunx nylon-mesh start nylon-mesh.yaml
 ```
 
-::: tip 🎉 You're all set!
-Traffic hitting port `3000` (default) is now being cached and routed to your backend efficiently. Check out the [Configuration](/configuration) to fine-tune your mesh.
-:::
+<Callout title="🎉 You're all set!" type="info">
+Traffic hitting port `3000` (default) is now being cached and routed to your backend efficiently. Check out the [Configuration](/docs/configuration) to fine-tune your mesh.
+</Callout>

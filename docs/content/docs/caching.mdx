@@ -1,4 +1,7 @@
-# SSR & Frontend Caching
+---
+title: SSR & Frontend Caching
+description: Understand the 2-tier cache architecture, bypass rules, and Cache-Control injection.
+---
 
 Nylon Mesh is purpose-built to absorb repetitive traffic spikes that would normally overwhelm SSR Node.js applications. It acts as an **unbreakable Stale Shield** using a tiered caching architecture.
 
@@ -13,9 +16,9 @@ The first layer of defense. Caches rendered HTML payloads and static files direc
 | `tier1_capacity` | Max elements (pages/files) held concurrently | `10000` |
 | `tier1_ttl_seconds` | Time-to-Live — proxy serves from RAM during this interval | `3` – `5` |
 
-::: tip Performance
+<Callout title="Performance" type="info">
 Set TTL to `3`–`5` seconds for high-traffic environments. This prevents backend melting while keeping data near real-time.
-:::
+</Callout>
 
 ### Tier 2 — Redis (Distributed)
 
@@ -35,9 +38,9 @@ When **1,000 users** request the homepage simultaneously:
 3. Proxy hits your **Next.js / Nuxt** server **ONCE**
 4. The remaining **999 requests** are served instantly from **Tier 1 RAM** — never reaching Node.js
 
-::: warning
+<Callout title="Warning" type="warn">
 Only `text/html` responses with HTTP `200` status are cached. API endpoints and non-GET methods are automatically excluded.
-:::
+</Callout>
 
 ---
 
@@ -55,9 +58,9 @@ bypass:
     - ".ico"               # Skip favicons
 ```
 
-::: important
+<Callout title="Important" type="error">
 Bypass rules have **absolute priority**. If a user hits `/api/users`, the proxy ignores all caching and forwards directly to the backend.
-:::
+</Callout>
 
 ---
 

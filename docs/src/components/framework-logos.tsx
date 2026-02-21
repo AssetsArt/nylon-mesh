@@ -1,10 +1,4 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-
-const visible = ref(false)
-onMounted(() => {
-  setTimeout(() => visible.value = true, 400)
-})
+'use client';
 
 const frameworks = [
   { name: 'Next.js', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><circle cx="64" cy="64" r="64"/><path fill="url(#a)" d="M106.317 112.014 49.167 38.4H38.4v51.179h8.614v-40.24l52.54 67.884a64.216 64.216 0 0 0 6.763-5.209z"/><path fill="url(#b)" d="M81.778 38.4h8.533v51.2h-8.533z"/><defs><linearGradient id="a" x1="109" x2="144.5" y1="116.5" y2="160.5" gradientTransform="scale(.71111)" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><linearGradient id="b" x1="121" x2="120.799" y1="54" y2="106.875" gradientTransform="scale(.71111)" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs></svg>` },
@@ -12,93 +6,30 @@ const frameworks = [
   { name: 'React', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g fill="#61DAFB"><circle cx="64" cy="64" r="11.4"/><path d="M107.3 45.2c-2.2-.8-4.5-1.6-6.9-2.3.6-2.4 1.1-4.8 1.5-7.1 2.1-13.2-.2-22.5-6.6-26.1-1.9-1.1-4-1.6-6.4-1.6-7 0-15.9 5.2-24.9 13.9-9-8.7-17.9-13.9-24.9-13.9-2.4 0-4.5.5-6.4 1.6-6.4 3.7-8.7 13-6.6 26.1.4 2.3.9 4.7 1.5 7.1-2.4.7-4.7 1.4-6.9 2.3C8.2 50 1.4 56.6 1.4 64s6.9 14 19.3 18.8c2.2.8 4.5 1.6 6.9 2.3-.6 2.4-1.1 4.8-1.5 7.1-2.1 13.2.2 22.5 6.6 26.1 1.9 1.1 4 1.6 6.4 1.6 7.1 0 16-5.2 24.9-13.9 9 8.7 17.9 13.9 24.9 13.9 2.4 0 4.5-.5 6.4-1.6 6.4-3.7 8.7-13 6.6-26.1-.4-2.3-.9-4.7-1.5-7.1 2.4-.7 4.7-1.4 6.9-2.3 12.5-4.8 19.3-11.4 19.3-18.8s-6.8-14-19.3-18.8zM92.5 14.7c4.1 2.4 5.5 9.8 3.8 20.3-.3 2.1-.8 4.3-1.4 6.6-5.2-1.2-10.7-2-16.5-2.5-3.4-4.8-6.9-9.1-10.4-13 7.4-7.3 14.9-12.3 21-12.3 1.3 0 2.5.3 3.5.9zM81.3 74c-1.8 3.2-3.9 6.4-6.1 9.6-3.7.3-7.4.4-11.2.4-3.9 0-7.6-.1-11.2-.4-2.2-3.2-4.2-6.4-6-9.6-1.9-3.3-3.7-6.7-5.3-10 1.6-3.3 3.4-6.7 5.3-10 1.8-3.2 3.9-6.4 6.1-9.6 3.7-.3 7.4-.4 11.2-.4 3.9 0 7.6.1 11.2.4 2.2 3.2 4.2 6.4 6 9.6 1.9 3.3 3.7 6.7 5.3 10-1.7 3.3-3.4 6.6-5.3 10zm8.3-3.3c1.5 3.5 2.7 6.9 3.8 10.3-3.4.8-7 1.4-10.8 1.9 1.2-1.9 2.5-3.9 3.6-6 1.2-2.1 2.3-4.2 3.4-6.2zM64 97.8c-2.4-2.6-4.7-5.4-6.9-8.3 2.3.1 4.6.2 6.9.2 2.3 0 4.6-.1 6.9-.2-2.2 2.9-4.5 5.7-6.9 8.3zm-18.6-15c-3.8-.5-7.4-1.1-10.8-1.9 1.1-3.3 2.3-6.8 3.8-10.3 1.1 2 2.2 4.1 3.4 6.1 1.2 2.2 2.4 4.1 3.6 6.1zm-7-25.5c-1.5-3.5-2.7-6.9-3.8-10.3 3.4-.8 7-1.4 10.8-1.9-1.2 1.9-2.5 3.9-3.6 6-1.2 2.1-2.3 4.2-3.4 6.2zM64 30.2c2.4 2.6 4.7 5.4 6.9 8.3-2.3-.1-4.6-.2-6.9-.2-2.3 0-4.6.1-6.9.2 2.2-2.9 4.5-5.7 6.9-8.3zm22.2 21l-3.6-6c3.8.5 7.4 1.1 10.8 1.9-1.1 3.3-2.3 6.8-3.8 10.3-1.1-2.1-2.2-4.2-3.4-6.2zM31.7 35c-1.7-10.5-.3-17.9 3.8-20.3 1-.6 2.2-.9 3.5-.9 6 0 13.5 4.9 21 12.3-3.5 3.8-7 8.2-10.4 13-5.8.5-11.3 1.4-16.5 2.5-.6-2.3-1-4.5-1.4-6.6zM7 64c0-4.7 5.7-9.7 15.7-13.4 2-.8 4.2-1.5 6.4-2.1 1.6 5 3.6 10.3 6 15.6-2.4 5.3-4.5 10.5-6 15.5C15.3 75.6 7 69.6 7 64zm28.5 49.3c-4.1-2.4-5.5-9.8-3.8-20.3.3-2.1.8-4.3 1.4-6.6 5.2 1.2 10.7 2 16.5 2.5 3.4 4.8 6.9 9.1 10.4 13-7.4 7.3-14.9 12.3-21 12.3-1.3 0-2.5-.3-3.5-.9zM96.3 93c1.7 10.5.3 17.9-3.8 20.3-1 .6-2.2.9-3.5.9-6 0-13.5-4.9-21-12.3 3.5-3.8 7-8.2 10.4-13 5.8-.5 11.3-1.4 16.5-2.5.6 2.3 1 4.5 1.4 6.6zm9-15.6c-2 .8-4.2 1.5-6.4 2.1-1.6-5-3.6-10.3-6-15.6 2.4-5.3 4.5-10.5 6-15.5 13.8 4 22.1 10 22.1 15.6 0 4.7-5.8 9.7-15.7 13.4z"/></g></svg>` },
   { name: 'Angular', svg: `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 128 128"><linearGradient id="ng-a" x1="14.704" x2="110.985" y1="46.27" y2="92.024" gradientTransform="matrix(1 0 0 -1 0 130)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#e40035"/><stop offset=".24" stop-color="#f60a48"/><stop offset=".352" stop-color="#f20755"/><stop offset=".494" stop-color="#dc087d"/><stop offset=".745" stop-color="#9717e7"/><stop offset="1" stop-color="#6c00f5"/></linearGradient><path fill="url(#ng-a)" d="m124.5 21.3-4.4 68.6L78.3 0l46.2 21.3zm-29 88.7L64 128l-31.5-18 6.4-15.5h50.3l6.3 15.5zM64 34.1l16.5 40.2h-33L64 34.1zM7.9 89.9 3.5 21.3 49.7 0 7.9 89.9z"/><linearGradient id="ng-b" x1="28.733" x2="91.742" y1="117.071" y2="45.195" gradientTransform="matrix(1 0 0 -1 0 130)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff31d9"/><stop offset="1" stop-color="#ff5be1" stop-opacity="0"/></linearGradient><path fill="url(#ng-b)" d="m124.5 21.3-4.4 68.6L78.3 0l46.2 21.3zm-29 88.7L64 128l-31.5-18 6.4-15.5h50.3l6.3 15.5zM64 34.1l16.5 40.2h-33L64 34.1zM7.9 89.9 3.5 21.3 49.7 0 7.9 89.9z"/></svg>` },
   { name: 'Vue', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M0 8.934l49.854.158 14.167 24.47 14.432-24.47L128 8.935l-63.834 110.14zm126.98.637l-24.36.02-38.476 66.053L25.691 9.592.942 9.572l63.211 107.89zm-25.149-.008l-22.745.168-15.053 24.647L49.216 9.73l-22.794-.168 37.731 64.476zm-75.834-.17l23.002.009m-23.002-.01l23.002.01" fill="none"/><path d="M25.997 9.393l23.002.009L64.035 34.36 79.018 9.404 102 9.398 64.15 75.053z" fill="#35495e"/><path d="M.91 9.569l25.067-.172 38.15 65.659L101.98 9.401l25.11.026-62.966 108.06z" fill="#41b883"/></svg>` },
-]
-</script>
+];
 
-<template>
-  <div :class="['frameworks-container', { visible }]">
-    <p class="frameworks-label">Works with your favorite framework</p>
-    <div class="frameworks-strip">
-      <div
-        v-for="fw in frameworks"
-        :key="fw.name"
-        class="fw-item"
-      >
-        <div class="fw-icon" v-html="fw.svg"></div>
-        <span class="fw-name">{{ fw.name }}</span>
+export function FrameworkLogos() {
+  return (
+    <div className="py-12 px-6 text-center">
+      <p className="text-xs uppercase tracking-widest font-semibold text-fd-muted-foreground mb-6">
+        Works with your favorite framework
+      </p>
+      <div className="flex items-center justify-center gap-10 flex-wrap">
+        {frameworks.map((fw) => (
+          <div
+            key={fw.name}
+            className="flex flex-col items-center gap-2.5 cursor-default transition-all duration-300 hover:-translate-y-1 group"
+          >
+            <div
+              className="w-11 h-11 transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(16,185,129,0.4)] [&>svg]:w-full [&>svg]:h-full"
+              dangerouslySetInnerHTML={{ __html: fw.svg }}
+            />
+            <span className="text-xs font-semibold text-fd-muted-foreground transition-colors duration-300 group-hover:text-fd-foreground">
+              {fw.name}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
-  </div>
-</template>
-
-<style scoped>
-.frameworks-container {
-  padding: 3rem 1.5rem 1rem;
-  text-align: center;
-  opacity: 0;
-  transform: translateY(16px);
-  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  );
 }
-
-.frameworks-container.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.frameworks-label {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 600;
-  color: #6e7681;
-  margin-bottom: 1.5rem;
-}
-
-.frameworks-strip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2.5rem;
-  flex-wrap: wrap;
-}
-
-.fw-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  cursor: default;
-  transition: all 0.3s ease;
-}
-
-.fw-item:hover {
-  transform: translateY(-3px);
-}
-
-.fw-item:hover .fw-icon {
-  filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.4));
-}
-
-.fw-icon {
-  width: 44px;
-  height: 44px;
-  opacity: 1;
-  transition: all 0.3s ease;
-}
-
-.fw-icon :deep(svg) {
-  width: 100%;
-  height: 100%;
-}
-
-.fw-name {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6e7681;
-  transition: color 0.3s ease;
-}
-
-.fw-item:hover .fw-name {
-  color: #e6edf3;
-}
-</style>

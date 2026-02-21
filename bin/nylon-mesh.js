@@ -66,7 +66,7 @@ if (command === 'start') {
     if (fs.existsSync(debugBinaryPath)) {
       exeToRun = debugBinaryPath;
     } else {
-      console.error('Nylon Mesh binary not found. Please run `npm run build` or `cargo build` first.');
+      console.error('Nylon Mesh binary not found. Please run `bun run build` or `cargo build` first.');
       process.exit(1);
     }
   }

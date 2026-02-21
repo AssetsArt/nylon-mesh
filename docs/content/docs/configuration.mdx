@@ -1,4 +1,7 @@
-# Configuration
+---
+title: Configuration
+description: Full YAML reference for nylon-mesh.yaml.
+---
 
 Nylon Mesh is entirely declarative—its behavior is controlled through a single YAML file.
 
@@ -67,7 +70,7 @@ cache_control:
 
 | Property | Description | Type |
 |---|---|---|
-| `upstreams` | Target backend servers. See [Load Balancing](/load-balancing). | `Array` |
+| `upstreams` | Target backend servers. See [Load Balancing](/docs/load-balancing). | `Array` |
 | `load_balancer_algo` | Distribution strategy: `round_robin` or `random`. | `String` |
 
 ### Caching
@@ -102,6 +105,6 @@ tls:
       key_path: "key.pem"
 ```
 
-::: tip
+<Callout title="Tip" type="info">
 For production Kubernetes deployments, it's recommended to terminate TLS at the ingress controller and let Nylon Mesh handle plain HTTP internally.
-:::
+</Callout>
