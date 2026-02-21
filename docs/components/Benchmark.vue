@@ -1,15 +1,25 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 
-const reqSec = ref(0)
-const latency = ref("0.00")
-const transfer = ref(0)
+const vanillaReqSec = ref(0)
+const vanillaLatency = ref("0.00")
+const vanillaTransfer = ref(0)
+
+const meshReqSec = ref(0)
+const meshLatency = ref("0.00")
+const meshTransfer = ref(0)
+
 let animationId
 
 onMounted(() => {
-  const targetReq = 100321
-  const targetLat = 1.19
-  const targetTrans = 292
+  const vTargetReq = 5181
+  const vTargetLat = 23.20
+  const vTargetTrans = 15
+  
+  const mTargetReq = 100321
+  const mTargetLat = 1.19
+  const mTargetTrans = 292
+  
   const duration = 2000
   let startTime = null
 
@@ -22,22 +32,34 @@ onMounted(() => {
       const progress = elapsed / duration
       const easeProgress = 1 - Math.pow(1 - progress, 4) // easeOutQuart
       
-      reqSec.value = Math.floor(easeProgress * targetReq)
-      latency.value = (easeProgress * targetLat).toFixed(2)
-      transfer.value = Math.floor(easeProgress * targetTrans)
+      vanillaReqSec.value = Math.floor(easeProgress * vTargetReq)
+      vanillaLatency.value = (easeProgress * vTargetLat).toFixed(2)
+      vanillaTransfer.value = Math.floor(easeProgress * vTargetTrans)
+
+      meshReqSec.value = Math.floor(easeProgress * mTargetReq)
+      meshLatency.value = (easeProgress * mTargetLat).toFixed(2)
+      meshTransfer.value = Math.floor(easeProgress * mTargetTrans)
     } else {
       // Phase 2: Continuous fluctuation (Live Dashboard Feel)
       const timeInSec = timestamp / 1000
       
-      // Use sine/cosine waves for smooth, "random" looking noise
-      const reqNoise = Math.sin(timeInSec * 2) * 800 + Math.cos(timeInSec * 3.5) * 500
-      reqSec.value = Math.floor(targetReq + reqNoise)
+      const vReqNoise = Math.sin(timeInSec * 2) * 150 + Math.cos(timeInSec * 3.5) * 80
+      vanillaReqSec.value = Math.floor(vTargetReq + vReqNoise)
       
-      const latNoise = Math.sin(timeInSec * 3) * 0.08 + Math.cos(timeInSec * 1.8) * 0.05
-      latency.value = Math.max(0.8, targetLat + latNoise).toFixed(2)
+      const vLatNoise = Math.sin(timeInSec * 3) * 0.8 + Math.cos(timeInSec * 1.8) * 0.5
+      vanillaLatency.value = Math.max(10, vTargetLat + vLatNoise).toFixed(2)
       
-      const transNoise = Math.sin(timeInSec * 2.5) * 6 + Math.cos(timeInSec * 4) * 4
-      transfer.value = Math.floor(targetTrans + transNoise)
+      const vTransNoise = Math.sin(timeInSec * 2.5) * 1 + Math.cos(timeInSec * 4) * 0.5
+      vanillaTransfer.value = Math.floor(vTargetTrans + vTransNoise)
+
+      const mReqNoise = Math.sin(timeInSec * 2) * 800 + Math.cos(timeInSec * 3.5) * 500
+      meshReqSec.value = Math.floor(mTargetReq + mReqNoise)
+      
+      const mLatNoise = Math.sin(timeInSec * 3) * 0.08 + Math.cos(timeInSec * 1.8) * 0.05
+      meshLatency.value = Math.max(0.8, mTargetLat + mLatNoise).toFixed(2)
+      
+      const mTransNoise = Math.sin(timeInSec * 2.5) * 6 + Math.cos(timeInSec * 4) * 4
+      meshTransfer.value = Math.floor(mTargetTrans + mTransNoise)
     }
 
     animationId = requestAnimationFrame(animate)
@@ -63,40 +85,89 @@ onUnmounted(() => {
         <code class="nextjs-badge">Next.js 16</code> app (<code>bun create next-app@latest my-app --yes</code>).
       </p>
 
-      <div class="stats-grid slide-in-bottom delay-2">
-        <div class="stat-card prime shimmer">
-          <span class="stat-label">Requests / Second</span>
-          <span class="stat-value highlight">{{ reqSec.toLocaleString() }}</span>
+      <div class="comparison-grid slide-in-bottom delay-2">
+        <!-- Vanilla Next.js -->
+        <div class="stat-card vanilla-card hover-glow">
+          <div class="card-header">
+            <h3>Vanilla Next.js</h3>
+            <span class="badge-sub">Without Mesh</span>
+          </div>
+          
+          <div class="stat-metrics">
+            <div class="stat-row">
+              <span class="stat-label">Requests / Sec</span>
+              <span class="stat-value">{{ vanillaReqSec.toLocaleString() }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Average Latency</span>
+              <span class="stat-value">{{ vanillaLatency }} <small>ms</small></span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Transfer Speed</span>
+              <span class="stat-value">{{ vanillaTransfer }} <small>MB/s</small></span>
+            </div>
+          </div>
         </div>
-        
-        <div class="stat-group">
-          <div class="stat-card hover-glow">
-            <span class="stat-label">Average Latency</span>
-            <span class="stat-value">{{ latency }} <small>ms</small></span>
+
+        <div class="vs-wrapper">
+          <div class="vs-badge">VS</div>
+        </div>
+
+        <!-- Nylon Mesh -->
+        <div class="stat-card prime mesh-card shimmer">
+          <div class="card-header">
+            <h3>With Nylon Mesh</h3>
+            <span class="badge-sub prime-badge">~19x Faster</span>
           </div>
-          <div class="stat-card hover-glow">
-            <span class="stat-label">Success Rate</span>
-            <span class="stat-value">100<small>%</small></span>
-          </div>
-          <div class="stat-card hover-glow">
-            <span class="stat-label">Transfer Speed</span>
-            <span class="stat-value">{{ transfer }}<small>MB/s</small></span>
-          </div>
-          <div class="stat-card hover-glow">
-            <span class="stat-label">Total Data</span>
-            <span class="stat-value">2.84 <small>GB</small></span>
+
+          <div class="stat-metrics">
+            <div class="stat-row highlight-row">
+              <span class="stat-label">Requests / Sec</span>
+              <span class="stat-value highlight">{{ meshReqSec.toLocaleString() }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Average Latency</span>
+              <span class="stat-value highlight-sm">{{ meshLatency }} <small>ms</small></span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Transfer Speed</span>
+              <span class="stat-value highlight-sm">{{ meshTransfer }} <small>MB/s</small></span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="terminal slide-in-bottom delay-3">
-        <div class="terminal-header">
-          <span class="dot red"></span>
-          <span class="dot yellow"></span>
-          <span class="dot green"></span>
-          <span class="term-title">oha -c 120 -z 10s http://localhost:3000</span>
+      <div class="terminals-wrapper slide-in-bottom delay-3">
+        <div class="terminal">
+          <div class="terminal-header">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+            <span class="term-title">Vanilla Next.js</span>
+          </div>
+          <pre class="terminal-body type-window">
+Summary:
+  Success rate:	100.00%
+  Total:	10002.3488 ms
+  Slowest:	130.5956 ms
+  Fastest:	5.5982 ms
+  Average:	23.1958 ms
+  Requests/sec:	5181.1830
+
+  Total data:	150.34 MiB
+  Size/request:	2.98 KiB
+  Size/sec:	15.03 MiB
+          </pre>
         </div>
-        <pre class="terminal-body type-window">
+
+        <div class="terminal prime-terminal">
+          <div class="terminal-header">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+            <span class="term-title">Next.js + Nylon Mesh</span>
+          </div>
+          <pre class="terminal-body type-window">
 Summary:
   Success rate:	100.00%
   Total:	10001.9643 ms
@@ -108,7 +179,8 @@ Summary:
   Total data:	2.85 GiB
   Size/request:	2.98 KiB
   Size/sec:	291.69 MiB
-        </pre>
+          </pre>
+        </div>
       </div>
     </div>
   </div>
@@ -162,6 +234,7 @@ Summary:
   margin-bottom: 1rem;
   background: -webkit-linear-gradient(45deg, var(--vp-c-brand-1), #10b981);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1.2;
   border: none;
@@ -182,107 +255,223 @@ Summary:
   margin-bottom: 3.5rem;
 }
 
-.stats-grid {
+/* Comparison Grid */
+.comparison-grid {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 3.5rem;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .comparison-grid {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0;
+  }
 }
 
 .stat-card {
   background: var(--vp-c-bg-mute);
   border: 1px solid var(--vp-c-divider);
   border-radius: 20px;
-  padding: 1.5rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  flex: 1;
+  width: 100%;
+  max-width: 450px;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
+.vanilla-card {
+  opacity: 0.9;
+}
+
+.mesh-card {
+  transform: scale(1.02);
+  z-index: 2;
+  box-shadow: 0 15px 40px rgba(16, 185, 129, 0.15);
+}
+
+.card-header {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--vp-c-text-1);
+}
+
+.badge-sub {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  background: rgba(128, 128, 128, 0.15);
+  color: var(--vp-c-text-2);
+}
+
+.prime-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--vp-c-brand-1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(16,185,129,0.2);
+}
+
+.stat-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stat-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.highlight-row {
+  margin-bottom: 0.5rem;
+}
+
+/* VS Badge Spacer */
+.vs-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1rem 0;
+  z-index: 3;
+}
+
+@media (min-width: 900px) {
+  .vs-wrapper {
+    margin: 0 -24px;
+  }
+}
+
+.vs-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--vp-c-bg-soft);
+  border: 2px solid var(--vp-c-divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-style: italic;
+  color: var(--vp-c-text-2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
 .hover-glow:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.15);
-  border-color: var(--vp-c-brand-1);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.05);
+  border-color: var(--vp-c-text-2);
 }
 
 .stat-card.prime {
-  padding: 3.5rem;
-  background: linear-gradient(145deg, var(--vp-c-bg-mute), rgba(16, 185, 129, 0.05));
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: linear-gradient(145deg, var(--vp-c-bg-mute), rgba(16, 185, 129, 0.08));
+  border: 1px solid rgba(16, 185, 129, 0.3);
   position: relative;
   overflow: hidden;
 }
 
+.stat-card.prime:hover {
+  transform: scale(1.04) translateY(-5px);
+}
+
 .stat-label {
-  font-size: 1rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   font-weight: 600;
   color: var(--vp-c-text-2);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   z-index: 2;
 }
 
 .stat-value {
-  font-size: 2.5rem;
-  font-weight: 800;
+  font-size: 2rem;
+  font-weight: 700;
   color: var(--vp-c-text-1);
   line-height: 1;
   z-index: 2;
 }
 
 .stat-value small {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--vp-c-text-3);
   margin-left: 0.2rem;
 }
 
 .stat-value.highlight {
-  font-size: 5.5rem;
+  font-size: 4rem;
   background: -webkit-linear-gradient(120deg, var(--vp-c-brand-1), #3fb950);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1;
   text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
 }
 
-.stat-group {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+.stat-value.highlight-sm {
+  font-size: 2.2rem;
+  color: #3fb950;
 }
 
-@media (min-width: 640px) {
-  .stat-group {
-    grid-template-columns: repeat(4, 1fr);
+/* Terminals */
+.terminals-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  text-align: left;
+}
+
+@media (min-width: 900px) {
+  .terminals-wrapper {
+    flex-direction: row;
   }
 }
 
 .terminal {
-  text-align: left;
+  flex: 1;
   background: #0d1117;
   border-radius: 16px;
   border: 1px solid #30363d;
   overflow: hidden;
-  box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+}
+
+.prime-terminal {
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.1);
 }
 
 .terminal-header {
   background: #161b22;
-  padding: 0.85rem 1.2rem;
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   border-bottom: 1px solid #30363d;
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  margin-right: 8px;
+  margin-right: 6px;
 }
 .dot.red { background: #ff5f56; }
 .dot.yellow { background: #ffbd2e; }
@@ -293,17 +482,17 @@ Summary:
   margin-right: auto;
   color: #8b949e;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-family: monospace;
 }
 
 .terminal-body {
   margin: 0;
-  padding: 2rem;
+  padding: 1.5rem;
   font-family: 'Fira Code', 'Monaco', monospace;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: #c9d1d9;
-  line-height: 1.6;
+  line-height: 1.5;
   overflow-x: auto;
 }
 
