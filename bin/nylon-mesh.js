@@ -7,18 +7,18 @@ const args = process.argv.slice(2);
 const command = args[0] || 'start';
 
 const DEFAULT_YAML = `listen: "0.0.0.0:3000"
-tls:
-  listen: "0.0.0.0:443"
-  certs:
-    - host: "default"
-      cert_path: "cert.pem"
-      key_path: "key.pem"
+# tls:
+#   listen: "0.0.0.0:443"
+#   certs:
+#     - host: "default"
+#       cert_path: "cert.pem"
+#       key_path: "key.pem"
 upstreams:
   - "127.0.0.1:3001"
-  - address: "127.0.0.1:3002"
-    weight: 5
+  # - address: "127.0.0.1:3002"
+    # weight: 5
 load_balancer_algo: "round_robin"
-redis_url: ""
+# redis_url: "redis://localhost:6379"
 cache:
   tier1_capacity: 10000
   tier1_ttl_seconds: 3
