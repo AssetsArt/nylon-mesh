@@ -7,9 +7,9 @@ const transfer = ref(0)
 let animationId
 
 onMounted(() => {
-  const targetReq = 99991
-  const targetLat = 1.20
-  const targetTrans = 291
+  const targetReq = 100321
+  const targetLat = 1.19
+  const targetTrans = 292
   const duration = 2000
   let startTime = null
 
@@ -59,7 +59,8 @@ onUnmounted(() => {
       <h2 class="title slide-in-bottom">Blazing Fast on Edge</h2>
       <p class="subtitle slide-in-bottom delay-1">
         Tested with <code>oha</code> (120 concurrent connections) on an <br/>
-        <strong>Apple M1 Pro (10-core CPU, 16GB RAM)</strong>.
+        <strong>Apple M1 Pro (10-core CPU, 16GB RAM)</strong> serving a default <br/>
+        <code class="nextjs-badge">Next.js 16</code> app (<code>bun create next-app@latest my-app --yes</code>).
       </p>
 
       <div class="stats-grid slide-in-bottom delay-2">
@@ -98,15 +99,15 @@ onUnmounted(() => {
         <pre class="terminal-body type-window">
 Summary:
   Success rate:	100.00%
-  Total:	10002.3763 ms
-  Slowest:	11.1073 ms
-  Fastest:	0.0287 ms
-  Average:	1.1976 ms
-  Requests/sec:	<span class="glow-text">99991.7390</span>
+  Total:	10001.9643 ms
+  Slowest:	11.1559 ms
+  Fastest:	0.0368 ms
+  Average:	1.1938 ms
+  Requests/sec:	<span class="glow-text">100321.1940</span>
 
-  Total data:	2.84 GiB
+  Total data:	2.85 GiB
   Size/request:	2.98 KiB
-  Size/sec:	290.75 MiB
+  Size/sec:	291.69 MiB
         </pre>
       </div>
     </div>
@@ -164,6 +165,15 @@ Summary:
   -webkit-text-fill-color: transparent;
   line-height: 1.2;
   border: none;
+}
+
+.nextjs-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--vp-c-text-1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  font-family: inherit;
+  font-weight: bold;
 }
 
 .subtitle {
