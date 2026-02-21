@@ -193,29 +193,33 @@ impl ProxyHttp for MeshProxy {
             return Ok(true);
         }
 
-        // Tier 2 Redis
-        let redis_url = self.config.redis_url.clone().unwrap_or_default();
-        if let Some(mut conn) = get_redis_conn(&redis_url).await {
-            use redis::AsyncCommands;
-            let cached_result: redis::RedisResult<Option<Vec<u8>>> =
-                conn.get::<&str, Option<Vec<u8>>>(&cache_key).await;
+        // Tier 2 Redis (Only if redis_url is configured)
+        if let Some(redis_url) = &self.config.redis_url {
+            if !redis_url.is_empty() {
+                if let Some(mut conn) = get_redis_conn(redis_url).await {
+                    use redis::AsyncCommands;
+                    let cached_result: redis::RedisResult<Option<Vec<u8>>> =
+                        conn.get::<&str, Option<Vec<u8>>>(&cache_key).await;
 
-            if let Ok(Some(html_bytes)) = cached_result {
-                debug!("Tier 2 HIT: {}", cache_key);
-                let bytes = Bytes::from(html_bytes);
+                    if let Ok(Some(html_bytes)) = cached_result {
+                        debug!("Tier 2 HIT: {}", cache_key);
+                        let bytes = Bytes::from(html_bytes);
 
-                if let Ok(mut header) = ResponseHeader::build(StatusCode::OK, None) {
-                    let _ = header.insert_header("Content-Type", "text/html; charset=utf-8");
-                    let _ = header.insert_header("Content-Length", bytes.len().to_string());
+                        if let Ok(mut header) = ResponseHeader::build(StatusCode::OK, None) {
+                            let _ =
+                                header.insert_header("Content-Type", "text/html; charset=utf-8");
+                            let _ = header.insert_header("Content-Length", bytes.len().to_string());
 
-                    TIER1_CACHE
-                        .insert(cache_key.clone(), (header.clone(), bytes.clone()))
-                        .await;
-                    let _ = header.insert_header("X-Cache-Tier", "2");
+                            TIER1_CACHE
+                                .insert(cache_key.clone(), (header.clone(), bytes.clone()))
+                                .await;
+                            let _ = header.insert_header("X-Cache-Tier", "2");
 
-                    let _ = session.write_response_header(Box::new(header), true).await;
-                    let _ = session.write_response_body(Some(bytes), true).await;
-                    return Ok(true);
+                            let _ = session.write_response_header(Box::new(header), true).await;
+                            let _ = session.write_response_body(Some(bytes), true).await;
+                            return Ok(true);
+                        }
+                    }
                 }
             }
         }
@@ -261,7 +265,7 @@ impl ProxyHttp for MeshProxy {
             if end_of_stream {
                 let cache_key = ctx.cache_key.clone();
                 let html_bytes = Bytes::from(ctx.response_body.clone());
-                let redis_url = self.config.redis_url.clone().unwrap_or_default();
+                let redis_url_opt = self.config.redis_url.clone();
                 let t2_ttl = self
                     .config
                     .cache
@@ -277,12 +281,16 @@ impl ProxyHttp for MeshProxy {
                             .insert(cache_key.clone(), (header, html_bytes.clone()))
                             .await;
 
-                        if let Some(mut conn) = get_redis_conn(&redis_url).await {
-                            use redis::AsyncCommands;
-                            let html_vec: Vec<u8> = html_bytes.into();
-                            let _: redis::RedisResult<()> = conn
-                                .set_ex::<&str, Vec<u8>, ()>(&cache_key, html_vec, t2_ttl)
-                                .await;
+                        if let Some(redis_url) = redis_url_opt {
+                            if !redis_url.is_empty() {
+                                if let Some(mut conn) = get_redis_conn(&redis_url).await {
+                                    use redis::AsyncCommands;
+                                    let html_vec: Vec<u8> = html_bytes.into();
+                                    let _: redis::RedisResult<()> = conn
+                                        .set_ex::<&str, Vec<u8>, ()>(&cache_key, html_vec, t2_ttl)
+                                        .await;
+                                }
+                            }
                         }
                     });
                 }

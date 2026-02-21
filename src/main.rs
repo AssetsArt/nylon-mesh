@@ -5,7 +5,7 @@ pub mod tls_accept;
 use nylon_ring_host::NylonRingHost;
 use pingora_core::server::Server;
 use pingora_core::server::configuration::{Opt, ServerConf};
-use pingora_load_balancing::{LoadBalancer, selection::RoundRobin};
+use pingora_load_balancing::LoadBalancer;
 use pingora_proxy::http_proxy_service;
 use std::env;
 use std::sync::Arc;
