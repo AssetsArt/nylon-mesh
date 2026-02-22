@@ -26,6 +26,7 @@ pub struct MeshProxy {
 pub struct ProxyCtx {
     pub should_cache: bool,
     pub cache_key: String,
+    pub host: String,
     pub response_body: Vec<u8>,
     pub response_header: Option<ResponseHeader>,
 }
@@ -38,6 +39,7 @@ impl ProxyHttp for MeshProxy {
         ProxyCtx {
             should_cache: false,
             cache_key: String::new(),
+            host: String::new(),
             response_body: Vec::new(),
             response_header: None,
         }
@@ -82,6 +84,8 @@ impl ProxyHttp for MeshProxy {
             .map(|v| v.to_str().unwrap_or("localhost"))
             .unwrap_or("localhost")
             .to_string();
+
+        ctx.host = host.clone();
 
         let accept_encoding = session
             .req_header()
@@ -192,7 +196,15 @@ impl ProxyHttp for MeshProxy {
                     .unwrap_or(60);
 
                 if let Some(header) = ctx.response_header.clone() {
-                    self.spawn_cache_save(cache_key, header, html_bytes, redis_url_opt, t2_ttl);
+                    let host = ctx.host.clone();
+                    self.spawn_cache_save(
+                        host,
+                        cache_key,
+                        header,
+                        html_bytes,
+                        redis_url_opt,
+                        t2_ttl,
+                    );
                 }
             }
         }

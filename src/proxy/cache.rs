@@ -38,6 +38,8 @@ pub async fn get_redis_conn(redis_url: &str) -> Option<redis::aio::MultiplexedCo
 pub struct CachedHeaders {
     pub status: u16,
     pub headers: Vec<(String, String)>,
+    #[serde(default)]
+    pub expires_at: u64,
 }
 
 impl MeshProxy {
@@ -77,24 +79,27 @@ impl MeshProxy {
         &self,
         session: &mut Session,
         enc: &str,
+        host: &str,
         cache_key: &str,
         redis_url: &str,
         now_secs: u64,
     ) -> Result<bool> {
         if let Some(mut conn) = get_redis_conn(redis_url).await {
-            let headers_key = format!("{}:headers", cache_key);
+            let sub_key = cache_key.strip_prefix(host).unwrap_or(cache_key);
+            let headers_key = format!("{}:headers", sub_key);
+
             let mut pipe = redis::pipe();
-            pipe.get(cache_key).get(&headers_key);
+            pipe.cmd("HGET")
+                .arg(host)
+                .arg(sub_key)
+                .cmd("HGET")
+                .arg(host)
+                .arg(&headers_key);
 
             let query_result: redis::RedisResult<(Option<Vec<u8>>, Option<Vec<u8>>)> =
                 pipe.query_async(&mut conn).await;
 
             if let Ok((Some(cached_payload), cached_headers_vec)) = query_result {
-                debug!("Tier 2 HIT: {}", cache_key);
-                if let Some(timestamp) = self.encoding_hits.get(enc) {
-                    timestamp.store(now_secs, std::sync::atomic::Ordering::Relaxed);
-                }
-
                 let mut status_code = StatusCode::OK;
                 let mut parsed_headers = Vec::new();
                 let mut is_new_format = false;
@@ -102,6 +107,19 @@ impl MeshProxy {
                 if let Some(headers_bytes) = cached_headers_vec {
                     if let Ok(headers_json) = String::from_utf8(headers_bytes) {
                         if let Ok(ch) = serde_json::from_str::<CachedHeaders>(&headers_json) {
+                            if ch.expires_at > 0 && now_secs > ch.expires_at {
+                                let mut del_pipe = redis::pipe();
+                                del_pipe
+                                    .cmd("HDEL")
+                                    .arg(host)
+                                    .arg(sub_key)
+                                    .cmd("HDEL")
+                                    .arg(host)
+                                    .arg(&headers_key);
+                                let _: redis::RedisResult<()> =
+                                    del_pipe.query_async(&mut conn).await;
+                                return Ok(false);
+                            }
                             if let Ok(sc) = StatusCode::from_u16(ch.status) {
                                 status_code = sc;
                             }
@@ -109,6 +127,11 @@ impl MeshProxy {
                             is_new_format = true;
                         }
                     }
+                }
+
+                debug!("Tier 2 HIT: {}", cache_key);
+                if let Some(timestamp) = self.encoding_hits.get(enc) {
+                    timestamp.store(now_secs, std::sync::atomic::Ordering::Relaxed);
                 }
 
                 let bytes = Bytes::from(cached_payload);
@@ -184,7 +207,7 @@ impl MeshProxy {
             if let Some(redis_url) = &self.config.redis_url {
                 if !redis_url.is_empty() {
                     if self
-                        .fetch_from_redis(session, enc, &cache_key, redis_url, now_secs)
+                        .fetch_from_redis(session, enc, host, &cache_key, redis_url, now_secs)
                         .await?
                     {
                         return Ok(true);
@@ -198,6 +221,7 @@ impl MeshProxy {
 
     pub fn spawn_cache_save(
         &self,
+        host: String,
         cache_key: String,
         mut header: ResponseHeader,
         html_bytes: Bytes,
@@ -220,6 +244,11 @@ impl MeshProxy {
             final_cache_key.push_str(&format!(":{}", content_encoding));
         }
 
+        let sub_key = final_cache_key
+            .strip_prefix(&host)
+            .unwrap_or(&final_cache_key)
+            .to_string();
+
         let tier1_cache = self.tier1_cache.clone();
         tokio::spawn(async move {
             tier1_cache
@@ -240,22 +269,28 @@ impl MeshProxy {
                             }
                         }
 
+                        let now_secs = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or(std::time::Duration::from_secs(0))
+                            .as_secs();
+
                         let cached_headers = CachedHeaders {
                             status: header.status.as_u16(),
                             headers: headers_vec,
+                            expires_at: now_secs + t2_ttl,
                         };
 
                         let html_vec: Vec<u8> = html_bytes.into();
                         if let Ok(headers_json) = serde_json::to_string(&cached_headers) {
-                            let headers_key = format!("{}:headers", final_cache_key);
+                            let headers_key = format!("{}:headers", sub_key);
                             let mut pipe = redis::pipe();
-                            pipe.cmd("SETEX")
-                                .arg(&final_cache_key)
-                                .arg(t2_ttl)
+                            pipe.cmd("HSET")
+                                .arg(&host)
+                                .arg(&sub_key)
                                 .arg(html_vec)
-                                .cmd("SETEX")
+                                .cmd("HSET")
+                                .arg(&host)
                                 .arg(&headers_key)
-                                .arg(t2_ttl)
                                 .arg(headers_json);
                             let _: redis::RedisResult<()> = pipe.query_async(&mut conn).await;
                         }
