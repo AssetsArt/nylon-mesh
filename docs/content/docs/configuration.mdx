@@ -23,6 +23,10 @@ upstreams:
 load_balancer_algo: "round_robin"
 redis_url: "redis://localhost:6379"
 
+trusted_proxies:
+  - "127.0.0.1/32"
+  - "10.0.0.0/8"
+
 cache:
   tier1_capacity: 10000
   tier1_ttl_seconds: 3
@@ -59,6 +63,7 @@ cache_control:
 |---|---|---|
 | `threads` | Worker threads. Defaults to host CPU core count. | `Integer` |
 | `listen` | IP and port the proxy binds to, e.g., `0.0.0.0:3000` | `String` |
+| `trusted_proxies` | List of IP addresses or subnets (CIDR) to trust for `X-Forwarded-*` headers. | `Array<String>` |
 
 ### Health Checks
 

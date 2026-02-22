@@ -98,7 +98,7 @@ impl ProxyHttp for MeshProxy {
                 false
             };
 
-            if is_trusted || self.config.trusted_proxies.is_none() {
+            if is_trusted {
                 // If it's a trusted proxy, we append the client IP (or keep what they sent)
                 if let Some(existing) = upstream_request.headers.get("X-Forwarded-For") {
                     if let Ok(existing_str) = existing.to_str() {
