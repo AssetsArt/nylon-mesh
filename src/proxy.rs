@@ -10,6 +10,7 @@ use pingora_load_balancing::{
     selection::{Random, RoundRobin},
 };
 use pingora_proxy::{ProxyHttp, Session};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, error};
@@ -58,6 +59,12 @@ impl MeshLoadBalancer {
             Self::Random(lb) => lb.select(key, max_iterations),
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+struct CachedHeaders {
+    status: u16,
+    headers: Vec<(String, String)>,
 }
 
 pub struct MeshProxy {
@@ -259,22 +266,56 @@ impl ProxyHttp for MeshProxy {
             if let Some(redis_url) = &self.config.redis_url {
                 if !redis_url.is_empty() {
                     if let Some(mut conn) = get_redis_conn(redis_url).await {
-                        use redis::AsyncCommands;
-                        let cached_result: redis::RedisResult<Option<Vec<u8>>> =
-                            conn.get::<&str, Option<Vec<u8>>>(&cache_key).await;
+                        let headers_key = format!("{}:headers", cache_key);
+                        let mut pipe = redis::pipe();
+                        pipe.get(&cache_key).get(&headers_key);
 
-                        if let Ok(Some(html_bytes)) = cached_result {
+                        let query_result: redis::RedisResult<(Option<Vec<u8>>, Option<Vec<u8>>)> =
+                            pipe.query_async(&mut conn).await;
+
+                        if let Ok((Some(cached_payload), cached_headers_vec)) = query_result {
                             debug!("Tier 2 HIT: {}", cache_key);
                             if let Some(timestamp) = self.encoding_hits.get(*enc) {
                                 timestamp.store(now_secs, std::sync::atomic::Ordering::Relaxed);
                             }
-                            let bytes = Bytes::from(html_bytes);
 
-                            if let Ok(mut header) = ResponseHeader::build(StatusCode::OK, None) {
-                                let _ = header
-                                    .insert_header("Content-Type", "text/html; charset=utf-8");
-                                let _ =
-                                    header.insert_header("Content-Length", bytes.len().to_string());
+                            let mut status_code = StatusCode::OK;
+                            let mut parsed_headers = Vec::new();
+                            let mut is_new_format = false;
+
+                            if let Some(headers_bytes) = cached_headers_vec {
+                                if let Ok(headers_json) = String::from_utf8(headers_bytes) {
+                                    if let Ok(ch) =
+                                        serde_json::from_str::<CachedHeaders>(&headers_json)
+                                    {
+                                        if let Ok(sc) = StatusCode::from_u16(ch.status) {
+                                            status_code = sc;
+                                        }
+                                        parsed_headers = ch.headers;
+                                        is_new_format = true;
+                                    }
+                                }
+                            }
+
+                            let bytes = Bytes::from(cached_payload);
+
+                            if let Ok(mut header) = ResponseHeader::build(status_code, None) {
+                                if is_new_format {
+                                    for (name, value) in parsed_headers {
+                                        if let (Ok(hname), Ok(hval)) = (
+                                            http::header::HeaderName::try_from(name.as_str()),
+                                            http::header::HeaderValue::try_from(value.as_str()),
+                                        ) {
+                                            let _ = header.insert_header(hname, hval);
+                                        }
+                                    }
+                                } else {
+                                    let _ = header
+                                        .insert_header("Content-Type", "text/html; charset=utf-8");
+                                    let _ = header
+                                        .insert_header("Content-Length", bytes.len().to_string());
+                                }
+
                                 if !enc.is_empty() {
                                     let _ = header.insert_header("Content-Encoding", *enc);
                                 }
@@ -375,6 +416,8 @@ impl ProxyHttp for MeshProxy {
                     .unwrap_or(60);
 
                 if let Some(mut header) = ctx.response_header.clone() {
+                    // transfer-encoding
+                    let _ = header.remove_header("Transfer-Encoding");
                     let _ = header.insert_header("Content-Length", html_bytes.len().to_string());
 
                     let content_encoding = header
@@ -390,17 +433,43 @@ impl ProxyHttp for MeshProxy {
                     let tier1_cache = self.tier1_cache.clone();
                     tokio::spawn(async move {
                         tier1_cache
-                            .insert(cache_key.clone(), (header, html_bytes.clone()))
+                            .insert(cache_key.clone(), (header.clone(), html_bytes.clone()))
                             .await;
 
                         if let Some(redis_url) = redis_url_opt {
                             if !redis_url.is_empty() {
                                 if let Some(mut conn) = get_redis_conn(&redis_url).await {
-                                    use redis::AsyncCommands;
+                                    let mut headers_vec = Vec::new();
+                                    for (name, value) in header.headers.iter() {
+                                        if let Ok(value_str) = value.to_str() {
+                                            headers_vec.push((
+                                                name.as_str().to_string(),
+                                                value_str.to_string(),
+                                            ));
+                                        }
+                                    }
+
+                                    let cached_headers = CachedHeaders {
+                                        status: header.status.as_u16(),
+                                        headers: headers_vec,
+                                    };
+
                                     let html_vec: Vec<u8> = html_bytes.into();
-                                    let _: redis::RedisResult<()> = conn
-                                        .set_ex::<&str, Vec<u8>, ()>(&cache_key, html_vec, t2_ttl)
-                                        .await;
+                                    if let Ok(headers_json) = serde_json::to_string(&cached_headers)
+                                    {
+                                        let headers_key = format!("{}:headers", cache_key);
+                                        let mut pipe = redis::pipe();
+                                        pipe.cmd("SETEX")
+                                            .arg(&cache_key)
+                                            .arg(t2_ttl)
+                                            .arg(html_vec)
+                                            .cmd("SETEX")
+                                            .arg(&headers_key)
+                                            .arg(t2_ttl)
+                                            .arg(headers_json);
+                                        let _: redis::RedisResult<()> =
+                                            pipe.query_async(&mut conn).await;
+                                    }
                                 }
                             }
                         }

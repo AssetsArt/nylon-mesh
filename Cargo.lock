@@ -1297,6 +1297,7 @@ dependencies = [
  "pingora-proxy",
  "redis",
  "serde",
+ "serde_json",
  "serde_yaml",
  "tokio",
  "tracing",
