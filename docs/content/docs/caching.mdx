@@ -28,6 +28,8 @@ A persistent, distributed cache layer backing up Tier 1:
 |---|---|---|
 | `redis_url` | Redis connection string | `redis://localhost:6379` |
 | `tier2_ttl_seconds` | General TTL for cached pages | `60` |
+| `status` | HTTP status codes to cache | `[200, 404]` |
+| `content_types` | HTTP Content-Types to cache | `["text/html"]` |
 
 ## How the Stale Shield Works
 
@@ -41,6 +43,32 @@ When **1,000 users** request the homepage simultaneously:
 <Callout title="Warning" type="warn">
 By default, only `text/html` responses with HTTP `200` status are cached. You can override this using the `cache.status` and `cache.content_types` config fields. API endpoints and non-GET methods are automatically excluded.
 </Callout>
+
+---
+
+## Clearing the Cache
+
+Since Tier 2 cache is stored in Redis, you can manually clear the cache using standard Redis commands via `redis-cli`. 
+
+Nylon Mesh stores cached pages in Redis **Hashes** (`HSET`). The Redis key is the **Hostname** (e.g., `127.0.0.1:3000` or `example.com`), and the hash field is the **URI/Path** (plus encoding).
+
+### Clear Entire Cache
+To purge all cached pages across all applications sharing the Redis instance:
+```bash
+redis-cli FLUSHALL
+```
+
+### Clear an Entire Domain/Host
+To clear all cache for a specific hostname (e.g. `example.com` or `localhost:3000`), you can simply delete the hash key:
+```bash
+redis-cli DEL "127.0.0.1:3000"
+```
+
+### Clear Specific Page
+If you want to clear a specific cached page, you must delete its hash fields (the path and the headers) under the host key. Note that if compression is used, you may need to delete the encoded variants (e.g., `/about:gzip`).
+```bash
+redis-cli HDEL "127.0.0.1:3000" "/about" "/about:headers" "/about:gzip" "/about:gzip:headers"
+```
 
 ---
 
