@@ -20,14 +20,14 @@ export function Footer() {
             <div className="flex flex-col gap-3">
               <Link href="/docs" className="text-fd-muted-foreground hover:text-emerald-400 transition-colors">Documentation</Link>
               <Link href="/docs/guide/deployment" className="text-fd-muted-foreground hover:text-emerald-400 transition-colors">Deployment</Link>
-              <Link href="https://github.com/detoro/nylon-mesh" target="_blank" rel="noopener noreferrer" className="text-fd-muted-foreground hover:text-emerald-400 transition-colors">GitHub</Link>
+              <Link href="https://github.com/AssetsArt/nylon-mesh" target="_blank" rel="noopener noreferrer" className="text-fd-muted-foreground hover:text-emerald-400 transition-colors">GitHub</Link>
             </div>
           </div>
 
           <div className="flex flex-col gap-4">
             <h3 className="font-semibold text-fd-foreground">Community</h3>
             <div className="flex flex-col gap-3">
-              <a href="https://github.com/detoro/nylon-mesh/issues" target="_blank" rel="noopener noreferrer" className="text-fd-muted-foreground hover:text-emerald-400 transition-colors">Issues</a>
+              <a href="https://github.com/AssetsArt/nylon-mesh/issues" target="_blank" rel="noopener noreferrer" className="text-fd-muted-foreground hover:text-emerald-400 transition-colors">Issues</a>
             </div>
           </div>
         </div>

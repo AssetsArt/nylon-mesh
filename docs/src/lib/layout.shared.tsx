@@ -1,7 +1,7 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 
 export const gitConfig = {
-  user: 'nicepkg',
+  user: 'AssetsArt',
   repo: 'nylon-mesh',
   branch: 'main',
 };
