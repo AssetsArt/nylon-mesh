@@ -13,7 +13,6 @@ use pingora_core::server::Server;
 use pingora_core::server::configuration::{Opt, ServerConf};
 use pingora_load_balancing::LoadBalancer;
 use pingora_proxy::http_proxy_service;
-use std::env;
 use std::sync::Arc;
 use tracing::{error, info};
 
@@ -51,12 +50,8 @@ async fn shutdown(shutdown_timeout: u64) {
 fn main() {
     tracing_subscriber::fmt().init();
 
-    let args: Vec<String> = env::args().collect();
-    let config_path = if args.len() > 1 {
-        &args[1]
-    } else {
-        "nylon-mesh.yaml"
-    };
+    let opt = Opt::parse_args();
+    let config_path = opt.conf.as_deref().unwrap_or("nylon-mesh.yaml");
 
     info!("Loading config from: {}", config_path);
     let config = match Config::load(config_path) {
@@ -139,7 +134,6 @@ fn main() {
         encoding_hits: Arc::new(encoding_hits),
     };
 
-    let opt = Opt::parse_args();
     let mut server = Server::new(Some(opt)).unwrap_or_else(|e| {
         error!("Failed to initialize Pingora Server: {}", e);
         std::process::exit(1);

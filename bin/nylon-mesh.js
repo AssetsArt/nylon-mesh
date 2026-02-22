@@ -59,7 +59,6 @@ function getPlatformString() {
 
   let osStr = '';
   switch (platform) {
-    case 'win32': osStr = 'windows'; break;
     case 'darwin': osStr = 'macos'; break;
     case 'linux': osStr = 'linux-gnu'; break; // Default to gnu, musl support can be added if statically linked or specify manually
     default: throw new Error(`Unsupported platform: ${platform}`);
@@ -72,11 +71,8 @@ function getPlatformString() {
     default: throw new Error(`Unsupported architecture: ${arch}`);
   }
 
-  // Windows suffix
-  const ext = platform === 'win32' ? '.exe' : '';
-
   // Format: nylon-mesh-{platform}-{arch}{ext}
-  return `nylon-mesh-${osStr}-${archStr}${ext}`;
+  return `nylon-mesh-${osStr}-${archStr}`;
 }
 
 function httpsGet(url, options = {}) {
@@ -146,8 +142,7 @@ async function downloadBinary(targetPath) {
 
 async function main() {
   const localBinDir = path.join(__dirname, '..', 'bin');
-  const exeExt = process.platform === 'win32' ? '.exe' : '';
-  const downloadedBinaryPath = path.join(localBinDir, `${BINARY_NAME}-bin${exeExt}`);
+  const downloadedBinaryPath = path.join(localBinDir, `${BINARY_NAME}-bin`);
 
   if (command === 'init') {
     const targetPath = path.join(process.cwd(), 'nylon-mesh.yaml');
@@ -169,8 +164,8 @@ async function main() {
   }
 
   if (command === 'start') {
-    const targetReleasePath = path.join(__dirname, '..', 'target', 'release', `${BINARY_NAME}${exeExt}`);
-    const targetDebugPath = path.join(__dirname, '..', 'target', 'debug', `${BINARY_NAME}${exeExt}`);
+    const targetReleasePath = path.join(__dirname, '..', `${BINARY_NAME}`);
+    const targetDebugPath = path.join(__dirname, '..', `${BINARY_NAME}`);
 
     let exeToRun = null;
     if (fs.existsSync(downloadedBinaryPath)) {
@@ -196,7 +191,7 @@ async function main() {
     }
 
     console.log(`Starting Nylon Mesh with config: ${yamlPath}`);
-    const child = spawnSync(exeToRun, [yamlPath], { stdio: 'inherit' });
+    const child = spawnSync(exeToRun, ['-c', yamlPath], { stdio: 'inherit' });
     process.exit(child.status || 0);
   }
 
