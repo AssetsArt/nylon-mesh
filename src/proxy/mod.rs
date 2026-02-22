@@ -161,10 +161,29 @@ impl ProxyHttp for MeshProxy {
             .map(|hv| hv.to_str().unwrap_or(""))
             .unwrap_or("");
 
-        if resp.status.as_u16() == 200
-            && content_type.contains("text/html")
-            && !ctx.cache_key.is_empty()
-        {
+        let default_statuses = vec![200];
+        let default_content_types = vec!["text/html".to_string()];
+
+        let valid_statuses = self
+            .config
+            .cache
+            .as_ref()
+            .and_then(|c| c.status.as_ref())
+            .unwrap_or(&default_statuses);
+
+        let valid_content_types = self
+            .config
+            .cache
+            .as_ref()
+            .and_then(|c| c.content_types.as_ref())
+            .unwrap_or(&default_content_types);
+
+        let has_valid_status = valid_statuses.contains(&resp.status.as_u16());
+        let has_valid_content_type = valid_content_types
+            .iter()
+            .any(|ct| content_type.contains(ct));
+
+        if has_valid_status && has_valid_content_type && !ctx.cache_key.is_empty() {
             ctx.should_cache = true;
             ctx.response_header = Some(resp.clone());
         }

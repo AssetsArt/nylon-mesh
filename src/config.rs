@@ -65,6 +65,8 @@ pub struct CacheConfig {
     pub tier1_capacity: Option<u64>,
     pub tier1_ttl_seconds: Option<u64>,
     pub tier2_ttl_seconds: Option<u64>,
+    pub status: Option<Vec<u16>>,
+    pub content_types: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
