@@ -11,7 +11,7 @@ const frameworks = [
 export function FrameworkLogos() {
   return (
     <div className="text-center">
-      <p className="text-xs uppercase tracking-widest font-semibold text-fd-muted-foreground mb-6">
+      <p className="text-sm font-black uppercase tracking-[0.2em] text-fd-muted-foreground mb-10 select-none">
         Works with your favorite framework
       </p>
       <div className="flex items-center justify-center gap-10 flex-wrap">
