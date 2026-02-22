@@ -1,13 +1,3 @@
-<br/>
-<div align="center">
-    <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://github.com/AssetsArt/nylon-mesh/blob/main/docs/public/logo-dark.png?raw=true">
-        <source media="(prefers-color-scheme: light)" srcset="https://github.com/AssetsArt/nylon-mesh/blob/main/docs/public/logo-light.png?raw=true">
-        <img alt="Nylon Mesh logo" src="https://github.com/AssetsArt/nylon-mesh/blob/main/docs/public/logo-light.png?raw=true" width="250">
-    </picture>
-</div>
-<br/>
-
 <div align="center">
   <strong>Nylon Mesh - Cache Everything. Scale Instantly.</strong>
 </div>
