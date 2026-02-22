@@ -30,7 +30,22 @@ const features = [
   },
 ];
 
-export default function HomePage() {
+async function getLatestVersion() {
+  try {
+    const res = await fetch('https://api.github.com/repos/AssetsArt/nylon-mesh/releases/latest', {
+      next: { revalidate: 3600 }, // Revalidate every hour
+    });
+    if (!res.ok) return 'v1.0.1'; // fallback
+    const data = await res.json();
+    return data.tag_name || 'v1.0.1';
+  } catch (error) {
+    return 'v1.0.1';
+  }
+}
+
+export default async function HomePage() {
+  const version = await getLatestVersion();
+
   return (
     <div className="flex flex-col min-h-screen selection:bg-emerald-500/30">
       {/* Hero Background Effects */}
@@ -42,7 +57,7 @@ export default function HomePage() {
       <section className="flex flex-col items-center justify-center pt-16 pb-16 px-4 text-center">
         <div className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-600 dark:text-emerald-400 mb-8 backdrop-blur-sm">
           <span className="flex h-2 w-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
-          Nylon Mesh v1.0.1 is out
+          Nylon Mesh {version} is out
         </div>
 
         <h1 className="text-6xl md:text-8xl font-black tracking-tight mb-6 max-w-5xl">
