@@ -17,13 +17,13 @@ export const metadata: Metadata = {
     template: '%s | Nylon Mesh',
     default: 'Nylon Mesh — Cache Everything. Scale Instantly.',
   },
-  description: 'A zero-config edge proxy built on Cloudflare Pingora. 2-tier caching (RAM + Redis) drops your backend load to near zero.',
+  description: 'A high-performance edge proxy built on Cloudflare Pingora. 2-tier caching (RAM + Redis) drops your backend load to near zero.',
 };
 
 export default function Layout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en" className={`${inter.className} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-      <body className="flex flex-col min-h-screen">
+      <body className="flex flex-col min-h-screen" suppressHydrationWarning>
         <RootProvider>{children}</RootProvider>
       </body>
     </html>

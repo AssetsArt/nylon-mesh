@@ -10,7 +10,7 @@ const frameworks = [
 
 export function FrameworkLogos() {
   return (
-    <div className="py-12 px-6 text-center">
+    <div className="text-center">
       <p className="text-xs uppercase tracking-widest font-semibold text-fd-muted-foreground mb-6">
         Works with your favorite framework
       </p>

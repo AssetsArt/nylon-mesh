@@ -53,7 +53,7 @@ export function Benchmark() {
 
   return (
     <div className="relative text-center py-8 px-6 pb-16 overflow-hidden">
-      <h2 className="text-4xl font-extrabold mb-4 bg-gradient-to-br from-fd-foreground to-emerald-500 bg-clip-text text-transparent tracking-tight animate-[slideUp_0.6s_ease-out]">
+      <h2 className="text-4xl font-extrabold mb-4 bg-linear-to-br from-fd-foreground to-emerald-500 bg-clip-text text-transparent tracking-tight animate-[slideUp_0.6s_ease-out]">
         Blazing Fast on Edge
       </h2>
       <p className="text-lg text-fd-muted-foreground mb-10 leading-relaxed animate-[slideUp_0.6s_ease-out_0.1s_both]">
@@ -62,59 +62,64 @@ export function Benchmark() {
 
       {/* Multiplier */}
       <div className="flex items-baseline justify-center gap-1.5 mb-10 animate-[slideUp_0.6s_ease-out_0.2s_both]">
-        <span className="text-7xl font-black bg-gradient-to-br from-emerald-500 via-green-500 to-cyan-400 bg-clip-text text-transparent leading-none tracking-tighter drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+        <span className="text-7xl font-black bg-linear-to-br from-emerald-500 via-green-500 to-cyan-400 bg-clip-text text-transparent leading-none tracking-tighter drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">
           {multiplier}×
         </span>
         <span className="text-xl font-semibold text-fd-muted-foreground">faster</span>
       </div>
 
       {/* Cards */}
-      <div className="flex flex-col items-center mb-12 animate-[slideUp_0.6s_ease-out_0.3s_both]">
+      <div className="flex flex-col lg:flex-row items-stretch justify-center gap-6 lg:gap-8 mb-12 relative animate-[slideUp_0.6s_ease-out_0.3s_both] w-full max-w-5xl mx-auto">
         {/* Mesh Card */}
-        <div className="w-full max-w-[680px] rounded-2xl p-8 relative overflow-hidden bg-gradient-to-br from-fd-card to-emerald-500/5 border border-emerald-500/25 shadow-lg shadow-emerald-500/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/20">
-          <div className="flex items-center justify-between mb-7">
+        <div className="flex-1 w-full rounded-2xl p-8 relative overflow-hidden bg-linear-to-br from-fd-card to-emerald-500/5 border border-emerald-500/25 shadow-lg shadow-emerald-500/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/20">
+          <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold text-fd-foreground m-0">With Nylon Mesh</h3>
             <span className="text-xs font-bold tracking-wide px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/25">⚡ Cached</span>
           </div>
-          <div className="flex items-end gap-8 md:gap-12 flex-wrap">
-            <div className="flex flex-col items-center flex-1">
-              <span className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(16,185,129,0.3)] tabular-nums">{meshReqSec.toLocaleString()}</span>
-              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-1.5">req/s</span>
+          <div className="grid grid-cols-2 gap-y-8 gap-x-4">
+            <div className="flex flex-col items-start col-span-2">
+              <span className="text-5xl font-bold bg-linear-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(16,185,129,0.3)] tabular-nums">{meshReqSec.toLocaleString()}</span>
+              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-2">Requests / Second</span>
             </div>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-start">
               <span className="text-2xl font-bold text-emerald-500 tabular-nums">{meshLatency}<small className="text-sm font-semibold text-emerald-500/50 ml-0.5">ms</small></span>
-              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-1.5">avg latency</span>
+              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-1.5">Avg Latency</span>
             </div>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-start">
               <span className="text-2xl font-bold text-emerald-500 tabular-nums">{meshTransfer}<small className="text-sm font-semibold text-emerald-500/50 ml-0.5">MB/s</small></span>
-              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-1.5">throughput</span>
+              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-1.5">Throughput</span>
             </div>
           </div>
         </div>
 
-        {/* VS */}
-        <div className="flex items-center justify-center my-4 z-[2]">
-          <div className="w-11 h-11 rounded-full bg-fd-card border-2 border-fd-border flex items-center justify-center font-extrabold italic text-fd-muted-foreground text-sm shadow-lg">VS</div>
+        {/* VS Badge (Desktop) */}
+        <div className="hidden lg:flex absolute left-1/2 top-[calc(50%+1rem)] -translate-x-1/2 -translate-y-1/2 items-center justify-center z-2">
+          <div className="w-12 h-12 rounded-full bg-fd-card border border-fd-border flex items-center justify-center font-extrabold italic text-fd-muted-foreground text-sm shadow-xl">VS</div>
+        </div>
+
+        {/* VS Badge (Mobile) */}
+        <div className="flex lg:hidden items-center justify-center my-2 z-2">
+          <div className="w-10 h-10 rounded-full bg-fd-card border border-fd-border flex items-center justify-center font-extrabold italic text-fd-muted-foreground text-sm shadow-lg">VS</div>
         </div>
 
         {/* Vanilla Card */}
-        <div className="w-full max-w-[680px] rounded-2xl p-8 bg-fd-card/60 border border-fd-border opacity-85 transition-all duration-300 hover:scale-[1.01] hover:opacity-100">
-          <div className="flex items-center justify-between mb-7">
+        <div className="flex-1 w-full rounded-2xl p-8 bg-fd-card/60 border border-fd-border opacity-85 transition-all duration-300 hover:-translate-y-1 hover:opacity-100">
+          <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold text-fd-foreground m-0">Vanilla Next.js</h3>
             <span className="text-xs font-bold tracking-wide px-2.5 py-1 rounded-full bg-fd-muted-foreground/10 text-fd-muted-foreground border border-fd-muted-foreground/20">No Cache</span>
           </div>
-          <div className="flex items-end gap-8 md:gap-12 flex-wrap">
-            <div className="flex flex-col items-center flex-1">
-              <span className="text-4xl md:text-5xl font-bold text-fd-muted-foreground tabular-nums">{vanillaReqSec.toLocaleString()}</span>
-              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-1.5">req/s</span>
+          <div className="grid grid-cols-2 gap-y-8 gap-x-4">
+            <div className="flex flex-col items-start col-span-2">
+              <span className="text-5xl font-bold text-fd-muted-foreground tabular-nums">{vanillaReqSec.toLocaleString()}</span>
+              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-2">Requests / Second</span>
             </div>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-start">
               <span className="text-2xl font-bold text-fd-muted-foreground tabular-nums">{vanillaLatency}<small className="text-sm font-semibold text-fd-muted-foreground/70 ml-0.5">ms</small></span>
-              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-1.5">avg latency</span>
+              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-1.5">Avg Latency</span>
             </div>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-start">
               <span className="text-2xl font-bold text-fd-muted-foreground tabular-nums">{vanillaTransfer}<small className="text-sm font-semibold text-fd-muted-foreground/70 ml-0.5">MB/s</small></span>
-              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-1.5">throughput</span>
+              <span className="text-xs uppercase tracking-wider font-semibold text-fd-muted-foreground mt-1.5">Throughput</span>
             </div>
           </div>
         </div>

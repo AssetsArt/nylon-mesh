@@ -2,7 +2,7 @@
 
 export function ArchitectureDiagram() {
   return (
-    <div className="py-16 px-6 text-center">
+    <div className="text-center">
       <h2 className="text-4xl font-extrabold mb-4 bg-gradient-to-br from-fd-foreground to-emerald-500 bg-clip-text text-transparent tracking-tight">
         How It Works
       </h2>
