@@ -159,7 +159,7 @@ async function main() {
       console.log('Binary already downloaded.');
     }
 
-    console.log('Run `npx nylon-mesh start` to start the proxy.');
+    console.log('Run `bunx nylon-mesh start` to start the proxy.');
     process.exit(0);
   }
 
@@ -186,7 +186,7 @@ async function main() {
     }
 
     if (!fs.existsSync(yamlPath)) {
-      console.error(`Config file not found at ${yamlPath}. Run \`npx nylon-mesh init\` first.`);
+      console.error(`Config file not found at ${yamlPath}. Run \`bunx nylon-mesh init\` first.`);
       process.exit(1);
     }
 
