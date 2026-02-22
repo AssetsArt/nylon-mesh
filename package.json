@@ -1,5 +1,5 @@
 {
-  "name": "nylon-mesh",
+  "name": "@assetsart/nylon-mesh",
   "version": "1.0.1",
   "description": "Nylon Mesh - Cache Everything. Scale Instantly.",
   "main": "index.js",
@@ -10,7 +10,8 @@
     "build": "cargo build --release",
     "docs:dev": "cd docs && bun run dev",
     "docs:build": "cd docs && bun run build",
-    "release": "bun run scripts/release.mjs"
+    "release": "bun run scripts/release.mjs",
+    "publish:npm": "bun run scripts/publish.mjs"
   },
   "keywords": [
     "proxy",
