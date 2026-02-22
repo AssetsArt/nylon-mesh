@@ -3,7 +3,7 @@ Output demo.gif
 
 # --- Terminal Settings ---
 Set FontSize 18
-Set Width 2400
+Set Width 1900
 Set Height 800
 Set Padding 40
 Set Theme "Dracula"
@@ -30,7 +30,7 @@ Sleep 1s
 Sleep 500ms
 Type "bunx --bun next start -p 3001"
 Enter
-Sleep 3s
+Sleep 1s
 
 Ctrl+B
 Sleep 500ms
