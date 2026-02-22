@@ -23,7 +23,7 @@ export function ArchitectureDiagram() {
         </div>
 
         {/* Arrow 1 */}
-        <div className="hidden md:flex flex-col items-center gap-1.5 px-3 shrink-1">
+        <div className="hidden md:flex flex-col items-center gap-1.5 px-3 shrink">
           <div className="flex items-center gap-0 w-full justify-center">
             <div className="w-12 h-0.5 bg-linear-to-r from-emerald-500/30 to-emerald-500" />
             <svg viewBox="0 0 12 12" width="12" height="12"><path d="M0 0 L12 6 L0 12 Z" fill="#10b981" /></svg>
@@ -61,7 +61,7 @@ export function ArchitectureDiagram() {
         </div>
 
         {/* Arrow 2 */}
-        <div className="hidden md:flex flex-col items-center gap-1.5 px-3 shrink-1">
+        <div className="hidden md:flex flex-col items-center gap-1.5 px-3 shrink">
           <div className="flex items-center gap-0 opacity-60 group-hover:opacity-100 transition-opacity w-full justify-center">
             <div className="w-12 h-0.5 bg-[repeating-linear-gradient(90deg,#6e7681_0px,#6e7681_4px,transparent_4px,transparent_8px)]" />
             <svg viewBox="0 0 12 12" width="12" height="12"><path d="M0 0 L12 6 L0 12 Z" fill="#6e7681" /></svg>
