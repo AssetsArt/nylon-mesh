@@ -27,6 +27,9 @@ cache:
   tier1_capacity: 10000
   tier1_ttl_seconds: 3
   tier2_ttl_seconds: 60
+  status: [200, 404]
+  content_types:
+    - "text/html"
 
 bypass:
   paths:
@@ -81,6 +84,8 @@ cache_control:
 | `cache.tier1_capacity` | Max elements in RAM cache. | `Integer` |
 | `cache.tier1_ttl_seconds` | Tier 1 TTL in seconds. | `Integer` |
 | `cache.tier2_ttl_seconds` | Tier 2 (Redis) TTL in seconds. | `Integer` |
+| `cache.status` | Allowed HTTP statuses. Default: `[200]`. | `Array<Integer>` |
+| `cache.content_types` | Allowed Content-Types. Default: `["text/html"]`. | `Array<String>` |
 
 ### Cache Rules
 

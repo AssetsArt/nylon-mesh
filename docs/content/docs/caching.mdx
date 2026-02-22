@@ -39,7 +39,7 @@ When **1,000 users** request the homepage simultaneously:
 4. The remaining **999 requests** are served instantly from **Tier 1 RAM** — never reaching Node.js
 
 <Callout title="Warning" type="warn">
-Only `text/html` responses with HTTP `200` status are cached. API endpoints and non-GET methods are automatically excluded.
+By default, only `text/html` responses with HTTP `200` status are cached. You can override this using the `cache.status` and `cache.content_types` config fields. API endpoints and non-GET methods are automatically excluded.
 </Callout>
 
 ---

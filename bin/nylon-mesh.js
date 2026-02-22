@@ -32,6 +32,10 @@ cache:
   tier1_capacity: 10000
   tier1_ttl_seconds: 3
   tier2_ttl_seconds: 60
+  status:
+    - 200
+  content_types:
+    - "text/html"
 bypass:
   paths:
     - "/_next/"

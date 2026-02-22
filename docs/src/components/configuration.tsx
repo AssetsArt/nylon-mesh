@@ -15,6 +15,9 @@ cache:
   tier1_capacity: 10000
   tier1_ttl_seconds: 3
   tier2_ttl_seconds: 60
+  status: [200, 404]
+  content_types:
+    - "text/html"
 
 bypass:
   paths:
@@ -73,6 +76,12 @@ bypass:
                 {`  `}<span className="text-blue-400">tier1_ttl_seconds</span><span className="text-gray-300">: </span><span className="text-yellow-400">3</span>
                 {`\n`}
                 {`  `}<span className="text-blue-400">tier2_ttl_seconds</span><span className="text-gray-300">: </span><span className="text-yellow-400">60</span>
+                {`\n`}
+                {`  `}<span className="text-blue-400">status</span><span className="text-gray-300">: [</span><span className="text-yellow-400">200</span><span className="text-gray-300">, </span><span className="text-yellow-400">404</span><span className="text-gray-300">]</span>
+                {`\n`}
+                {`  `}<span className="text-blue-400">content_types</span><span className="text-gray-300">:</span>
+                {`\n`}
+                {`    - `}<span className="text-green-400">"text/html"</span>
                 {`\n\n`}
                 <span className="text-pink-400">bypass</span><span className="text-gray-300">:</span>
                 {`\n`}
