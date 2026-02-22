@@ -105,7 +105,7 @@ export function Benchmark() {
         {/* Vanilla Card */}
         <div className="flex-1 w-full rounded-2xl p-8 bg-fd-card/60 border border-fd-border opacity-85 transition-all duration-300 hover:-translate-y-1 hover:opacity-100">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-bold text-fd-foreground m-0">Vanilla Next.js</h3>
+            <h3 className="text-xl font-bold text-fd-foreground m-0">Next.js</h3>
             <span className="text-xs font-bold tracking-wide px-2.5 py-1 rounded-full bg-fd-muted-foreground/10 text-fd-muted-foreground border border-fd-muted-foreground/20">No Cache</span>
           </div>
           <div className="grid grid-cols-2 gap-y-8 gap-x-4">
