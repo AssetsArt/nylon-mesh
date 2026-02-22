@@ -88,14 +88,30 @@ impl ProxyHttp for MeshProxy {
                 }
             };
 
-            if let Some(existing) = upstream_request.headers.get("X-Forwarded-For") {
-                if let Ok(existing_str) = existing.to_str() {
-                    let new_xff = format!("{}, {}", existing_str, ip);
-                    let _ = upstream_request.insert_header("X-Forwarded-For", new_xff);
+            let is_trusted = if let Some(trusted_proxies) = &self.config.trusted_proxies {
+                if let Ok(ip_addr) = ip.parse::<std::net::IpAddr>() {
+                    trusted_proxies.iter().any(|net| net.contains(&ip_addr))
+                } else {
+                    false
+                }
+            } else {
+                false
+            };
+
+            if is_trusted || self.config.trusted_proxies.is_none() {
+                // If it's a trusted proxy, we append the client IP (or keep what they sent)
+                if let Some(existing) = upstream_request.headers.get("X-Forwarded-For") {
+                    if let Ok(existing_str) = existing.to_str() {
+                        let new_xff = format!("{}, {}", existing_str, ip);
+                        let _ = upstream_request.insert_header("X-Forwarded-For", new_xff);
+                    } else {
+                        let _ = upstream_request.insert_header("X-Forwarded-For", ip.clone());
+                    }
                 } else {
                     let _ = upstream_request.insert_header("X-Forwarded-For", ip.clone());
                 }
             } else {
+                // If not trusted, we OVERWRITE any existing X-Forwarded-For to prevent spoofing
                 let _ = upstream_request.insert_header("X-Forwarded-For", ip.clone());
             }
 
@@ -103,6 +119,70 @@ impl ProxyHttp for MeshProxy {
                 let _ = upstream_request.insert_header("X-Real-IP", ip);
             }
         }
+
+        // --- X-Forwarded-Proto ---
+        // Basic check if the connection is secure. Pingora session gives us access to TLS info.
+        let is_https = session.digest().is_some_and(|d| d.ssl_digest.is_some());
+        let scheme = if is_https { "https" } else { "http" };
+
+        let is_trusted_for_proto = if let Some(client_addr) = session.client_addr() {
+            let ip_str = client_addr.to_string();
+            let ip = ip_str.split(':').next().unwrap_or(&ip_str).to_string();
+            if let Ok(ip_addr) = ip.parse::<std::net::IpAddr>() {
+                self.config
+                    .trusted_proxies
+                    .as_ref()
+                    .map_or(false, |tp| tp.iter().any(|net| net.contains(&ip_addr)))
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+
+        if is_trusted_for_proto && upstream_request.headers.contains_key("X-Forwarded-Proto") {
+            // Keep what the trusted proxy sent
+        } else {
+            // Overwrite with actual proto
+            let _ = upstream_request.insert_header("X-Forwarded-Proto", scheme);
+        }
+
+        // --- X-Forwarded-Port ---
+        let mut port = if is_https {
+            "443".to_string()
+        } else {
+            "80".to_string()
+        };
+
+        let config_addr = if is_https {
+            self.config.tls.as_ref().map(|t| t.listen.as_str())
+        } else {
+            self.config.listen.as_deref()
+        };
+
+        if let Some(addr) = config_addr {
+            if let Some(p) = addr.split(':').last() {
+                port = p.to_string();
+            }
+        }
+
+        if is_trusted_for_proto && upstream_request.headers.contains_key("X-Forwarded-Port") {
+            // Keep what trusted proxy sent
+        } else {
+            let _ = upstream_request.insert_header("X-Forwarded-Port", port);
+        }
+
+        // --- X-Forwarded-Host ---
+        if is_trusted_for_proto && upstream_request.headers.contains_key("X-Forwarded-Host") {
+            // Keep existing
+        } else {
+            if let Some(host) = session.req_header().headers.get("Host") {
+                if let Ok(host_str) = host.to_str() {
+                    let _ = upstream_request.insert_header("X-Forwarded-Host", host_str);
+                }
+            }
+        }
+
         Ok(())
     }
 

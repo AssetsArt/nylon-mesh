@@ -15,6 +15,7 @@ pub struct Config {
     pub cache: Option<CacheConfig>,
     pub bypass: Option<BypassConfig>,
     pub cache_control: Option<Vec<CacheControlConfig>>,
+    pub trusted_proxies: Option<Vec<ipnet::IpNet>>,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq)]
