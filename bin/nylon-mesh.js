@@ -197,8 +197,8 @@ async function main() {
 
   console.error(`Unknown command: ${command}`);
   console.error(`Usage:`);
-  console.error(`  npx nylon-mesh init   - Create a default config file and download binary`);
-  console.error(`  npx nylon-mesh start  - Start the proxy server`);
+  console.error(`  bunx nylon-mesh init   - Create a default config file and download binary`);
+  console.error(`  bunx nylon-mesh start  - Start the proxy server`);
   process.exit(1);
 }
 
