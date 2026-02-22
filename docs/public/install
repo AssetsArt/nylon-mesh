@@ -19,7 +19,14 @@ os_str=""
 case "$OS" in
     Linux)  os_str="linux-gnu" ;;
     Darwin) os_str="macos" ;;
-    *)      echo "Unsupported OS: $OS"; exit 1 ;;
+    CYGWIN*|MINGW*|MSYS*|MINGW32*|MINGW64*) 
+        echo "❌ Windows is not currently supported."
+        exit 1 
+        ;;
+    *)      
+        echo "Unsupported OS: $OS"
+        exit 1 
+        ;;
 esac
 
 arch_str=""

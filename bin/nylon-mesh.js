@@ -61,6 +61,9 @@ function getPlatformString() {
   switch (platform) {
     case 'darwin': osStr = 'macos'; break;
     case 'linux': osStr = 'linux-gnu'; break; // Default to gnu, musl support can be added if statically linked or specify manually
+    case 'win32':
+      console.error('❌ Windows is not currently supported.');
+      process.exit(1);
     default: throw new Error(`Unsupported platform: ${platform}`);
   }
 
