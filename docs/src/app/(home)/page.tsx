@@ -3,6 +3,7 @@ import { FrameworkLogos } from '@/components/framework-logos';
 import { ArchitectureDiagram } from '@/components/architecture-diagram';
 import { Benchmark } from '@/components/benchmark';
 import { Configuration } from '@/components/configuration';
+import { Footer } from '@/components/footer';
 import { CopyButton } from '@/components/copy-button';
 import { Zap, Layers, Network, Blocks, ChevronRight } from 'lucide-react';
 
@@ -116,6 +117,9 @@ export default function HomePage() {
       <section className="mx-auto w-full max-w-6xl px-4 pb-24 relative z-10">
         <Configuration />
       </section>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
