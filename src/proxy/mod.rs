@@ -64,6 +64,48 @@ impl ProxyHttp for MeshProxy {
         Ok(Box::new(peer))
     }
 
+    async fn upstream_request_filter(
+        &self,
+        session: &mut Session,
+        upstream_request: &mut pingora::http::RequestHeader,
+        _ctx: &mut Self::CTX,
+    ) -> Result<()> {
+        if let Some(client_addr) = session.client_addr() {
+            let ip = if let Some(inet) = client_addr.as_inet() {
+                inet.ip().to_string()
+            } else {
+                // Fallback: strip port from to_string() if not inet (e.g., unix socket)
+                let ip_str = client_addr.to_string();
+                if ip_str.starts_with('[') {
+                    // IPv6 like [2001:db8::1]:8080 or just unix socket path
+                    if let Some(end) = ip_str.rfind(']') {
+                        ip_str[1..end].to_string()
+                    } else {
+                        ip_str.clone()
+                    }
+                } else {
+                    ip_str.split(':').next().unwrap_or(&ip_str).to_string()
+                }
+            };
+
+            if let Some(existing) = upstream_request.headers.get("X-Forwarded-For") {
+                if let Ok(existing_str) = existing.to_str() {
+                    let new_xff = format!("{}, {}", existing_str, ip);
+                    let _ = upstream_request.insert_header("X-Forwarded-For", new_xff);
+                } else {
+                    let _ = upstream_request.insert_header("X-Forwarded-For", ip.clone());
+                }
+            } else {
+                let _ = upstream_request.insert_header("X-Forwarded-For", ip.clone());
+            }
+
+            if !upstream_request.headers.contains_key("X-Real-IP") {
+                let _ = upstream_request.insert_header("X-Real-IP", ip);
+            }
+        }
+        Ok(())
+    }
+
     async fn request_filter(&self, session: &mut Session, ctx: &mut Self::CTX) -> Result<bool> {
         let uri = session.req_header().uri.path().to_string();
 
