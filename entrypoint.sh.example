@@ -8,7 +8,7 @@ NEXT_PID=$!
 
 # Start Nylon Mesh in the background on port 3000
 echo "Starting Nylon Mesh..."
-nylon-mesh start nylon-mesh.yaml &
+nylon-mesh start -c nylon-mesh.yaml &
 NYLON_PID=$!
 
 # Wait for any process to exit

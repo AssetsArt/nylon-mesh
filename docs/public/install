@@ -86,4 +86,4 @@ fi
 echo ""
 echo "Quick start:"
 echo "  nylon-mesh init"
-echo "  nylon-mesh start"
+echo "  nylon-mesh start -c <config-path>"

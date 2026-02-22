@@ -40,7 +40,7 @@ bun add nylon-mesh
 Generate a ready-to-use configuration file:
 
 ```bash
-bunx nylon-mesh init
+nylon-mesh init
 ```
 
 This creates a `nylon-mesh.yaml` in your project folder. **No code changes required.**
@@ -53,10 +53,10 @@ Start by pointing the proxy at your config:
 cargo run --release -- nylon-mesh.yaml
 ```
 
-Or via the CLI wrapper:
+Or run it directly:
 
 ```bash
-bunx nylon-mesh start nylon-mesh.yaml
+nylon-mesh start -c <config-path>
 ```
 
 <Callout title="🎉 You're all set!" type="info">
