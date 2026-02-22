@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+# Start Next.js in the background on port 3001
+echo "Starting Next.js..."
+PORT=3001 NEXT_TELEMETRY_DISABLED=1 bun run start &
+NEXT_PID=$!
+
+# Start Nylon Mesh in the background on port 3000
+echo "Starting Nylon Mesh..."
+nylon-mesh start nylon-mesh.yaml &
+NYLON_PID=$!
+
+# Wait for any process to exit
+wait -n
+
+# Exit with status of process that exited first
+exit $?

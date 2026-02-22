@@ -1,0 +1,89 @@
+#!/bin/bash
+set -e
+
+# Nylon Mesh Installer
+# https://mesh.nylon.sh
+
+REPO="AssetsArt/nylon-mesh"
+INSTALL_DIR="${HOME}/.nylon-mesh"
+BIN_DIR="${INSTALL_DIR}/bin"
+EXE_NAME="nylon-mesh"
+
+echo "Installing Nylon Mesh..."
+
+# Detect OS and Architecture
+OS="$(uname -s)"
+ARCH="$(uname -m)"
+
+os_str=""
+case "$OS" in
+    Linux)  os_str="linux-gnu" ;;
+    Darwin) os_str="macos" ;;
+    *)      echo "Unsupported OS: $OS"; exit 1 ;;
+esac
+
+arch_str=""
+case "$ARCH" in
+    x86_64)  arch_str="x86_64" ;;
+    aarch64|arm64) arch_str="aarch64" ;;
+    *)       echo "Unsupported architecture: $ARCH"; exit 1 ;;
+esac
+
+ASSET_NAME="nylon-mesh-${os_str}-${arch_str}"
+
+# Get the latest release version using GitHub API
+echo "Fetching latest release..."
+LATEST_RELEASE=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep -o '"tag_name": *"[^"]*"' | sed -E 's/.*"([^"]+)".*/\1/')
+
+if [ -z "$LATEST_RELEASE" ]; then
+    echo "Failed to fetch the latest release version from GitHub."
+    exit 1
+fi
+
+DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/${ASSET_NAME}"
+
+# Create bin directory
+mkdir -p "$BIN_DIR"
+
+# Download the binary
+echo "Downloading $ASSET_NAME ($LATEST_RELEASE)..."
+echo "From: $DOWNLOAD_URL"
+curl -fsSL "$DOWNLOAD_URL" -o "${BIN_DIR}/${EXE_NAME}"
+
+# Make executable
+chmod +x "${BIN_DIR}/${EXE_NAME}"
+
+echo "Nylon Mesh installed to ${BIN_DIR}/${EXE_NAME}"
+
+# Setup PATH
+PROFILE_STRING="export PATH=\"\$HOME/.nylon-mesh/bin:\$PATH\""
+RC_FILE=""
+
+if [ -n "$ZSH_VERSION" ] || [[ "$SHELL" == *"zsh"* ]]; then
+    RC_FILE="$HOME/.zshrc"
+elif [ -n "$BASH_VERSION" ] || [[ "$SHELL" == *"bash"* ]]; then
+    RC_FILE="$HOME/.bashrc"
+fi
+
+if [[ ":$PATH:" != *":$HOME/.nylon-mesh/bin:"* ]]; then
+    if [ -n "$RC_FILE" ]; then
+        if ! grep -q "$PROFILE_STRING" "$RC_FILE"; then
+            echo "" >> "$RC_FILE"
+            echo "# Nylon Mesh" >> "$RC_FILE"
+            echo "$PROFILE_STRING" >> "$RC_FILE"
+        fi
+        echo "Added $BIN_DIR to your PATH via $RC_FILE."
+        echo "Please run 'source $RC_FILE' to update your current session,"
+        echo "or start a new terminal context."
+    else
+        echo "Please add the following line to your shell profile to add it to your PATH:"
+        echo "  $PROFILE_STRING"
+    fi
+else
+    echo "Nylon Mesh is ready to use!"
+fi
+
+echo ""
+echo "Quick start:"
+echo "  nylon-mesh init"
+echo "  nylon-mesh start"

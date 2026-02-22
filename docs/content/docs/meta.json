@@ -4,6 +4,7 @@
     "index",
     "caching",
     "load-balancing",
-    "configuration"
+    "configuration",
+    "deployment"
   ]
 }

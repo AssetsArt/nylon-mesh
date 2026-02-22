@@ -1,0 +1,102 @@
+---
+title: Deployment
+description: Deploying Next.js with Nylon Mesh in a single Docker container.
+---
+
+When deploying a full-stack Next.js application alongside Nylon Mesh, the most efficient approach is a monolithic container. This allows Nylon Mesh to act as the primary entry point (port 3000), routing traffic and caching responses, while Next.js runs securely in the background (port 3001).
+
+Since compiling Rust (Pingora) from scratch inside a Docker build takes a significant amount of time, we recommend utilizing our official installation script to install the pre-compiled `nylon-mesh` binary directly into your runtime container.
+
+## Example `Dockerfile`
+
+The following Dockerfile demonstrates a multi-stage approach where we build the Next.js static assets first, then construct the final Debian-based runtime container pulling in both Bun and Nylon Mesh globally.
+
+```dockerfile title="Dockerfile"
+# Stage 1: Build the Frontend (Next.js)
+FROM oven/bun:alpine AS frontend-builder
+WORKDIR /app
+# Copy Next.js source code
+COPY package.json bun.lock* ./
+RUN bun install
+COPY tsconfig.json postcss.config.mjs next.config.ts next-env.d.ts eslint.config.mjs ./
+COPY app/ app/
+COPY components/ components/
+COPY lib/ lib/
+COPY public/ public/
+# Build the Next.js production payload directly to bypass cargo
+RUN bunx next build
+
+# Stage 2: The Production Runtime Monolith
+FROM debian:bookworm-slim
+WORKDIR /app
+
+# Update and install dependencies: OpenSSL (for proxy), Curl (for Bun & healthchecks), Bash (for supervisor)
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    curl \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Bun globally in the debian container
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:${PATH}"
+
+# Install Nylon Mesh globally
+RUN curl -fsSL https://mesh.nylon.sh/install | bash
+ENV PATH="/root/.nylon-mesh/bin:${PATH}"
+
+# Copy the built Next.js application
+COPY --from=frontend-builder /app/package.json ./package.json
+COPY --from=frontend-builder /app/.next ./.next
+COPY --from=frontend-builder /app/node_modules ./node_modules
+COPY --from=frontend-builder /app/public ./public
+# Copy the Nylon Mesh configuration file
+COPY nylon-mesh.yaml ./nylon-mesh.yaml
+
+# Setup the initialization script
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
+# Expose port 3000 (Pingora traffic)
+EXPOSE 3000
+
+# Set production environment
+ENV NODE_ENV=production
+
+# Run the supervisor script
+CMD ["./entrypoint.sh"]
+```
+
+## Example `entrypoint.sh`
+
+Because the Docker container needs to run two separate long-lived processes (Next.js and Nylon Mesh), we use a bash script to supervise them. It starts both processes in the background and waits. If either crashes, the container terminates, allowing orchestrators like Kubernetes or Docker Compose to restart it.
+
+```bash title="entrypoint.sh"
+#!/bin/bash
+set -e
+
+# Start Next.js in the background on port 3001 (internal only)
+echo "Starting Next.js..."
+PORT=3001 NEXT_TELEMETRY_DISABLED=1 bun run start &
+NEXT_PID=$!
+
+# Start Nylon Mesh in the background on port 3000 (public facing)
+echo "Starting Nylon Mesh..."
+nylon-mesh start nylon-mesh.yaml &
+NYLON_PID=$!
+
+# Wait for any process to exit
+wait -n
+
+# Exit with status of process that exited first
+exit $?
+```
+
+Make sure that your `nylon-mesh.yaml` defines the upstream target to the internal Next.js port.
+```yaml title="nylon-mesh.yaml"
+listen: "0.0.0.0:3000"
+upstreams:
+  - "127.0.0.1:3001"
+# ... other config
+```

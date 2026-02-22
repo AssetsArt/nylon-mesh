@@ -57,7 +57,7 @@ export default function HomePage() {
           A high-performance edge proxy that sits in front of your Next.js, Nuxt, or any SSR app, dropping your backend load to near zero.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md mx-auto">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full mx-auto">
           <Link
             href="/docs"
             className="group flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-4 text-white font-semibold transition-all hover:bg-emerald-600 hover:scale-105 active:scale-95 no-underline shadow-[0_0_40px_-5px_#10b981]"
@@ -66,8 +66,8 @@ export default function HomePage() {
             <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Link>
           <div className="flex w-full sm:w-auto items-center justify-between rounded-xl border border-fd-border bg-fd-card px-4 py-4 text-sm font-mono text-fd-muted-foreground shadow-sm group hover:border-emerald-500/50 transition-colors">
-            <span className="mr-8 select-all">bunx nylon-mesh init</span>
-            <CopyButton text="bunx nylon-mesh init" />
+            <span className="mr-8 select-all">curl -fsSL https://mesh.nylon.sh/install | bash</span>
+            <CopyButton text="curl -fsSL https://mesh.nylon.sh/install | bash" />
           </div>
         </div>
       </section>
