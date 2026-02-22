@@ -66,6 +66,7 @@ pub struct CacheConfig {
     pub tier1_capacity: Option<u64>,
     pub tier1_ttl_seconds: Option<u64>,
     pub tier2_ttl_seconds: Option<u64>,
+    pub max_cacheable_size_mb: Option<usize>,
     pub status: Option<Vec<u16>>,
     pub content_types: Option<Vec<String>>,
 }

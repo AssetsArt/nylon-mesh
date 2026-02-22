@@ -70,7 +70,7 @@ impl ProxyHttp for MeshProxy {
         upstream_request: &mut pingora::http::RequestHeader,
         _ctx: &mut Self::CTX,
     ) -> Result<()> {
-        if let Some(client_addr) = session.client_addr() {
+        let (client_ip_str, is_trusted) = if let Some(client_addr) = session.client_addr() {
             let ip = if let Some(inet) = client_addr.as_inet() {
                 inet.ip().to_string()
             } else {
@@ -88,35 +88,44 @@ impl ProxyHttp for MeshProxy {
                 }
             };
 
-            let is_trusted = if let Some(trusted_proxies) = &self.config.trusted_proxies {
-                if let Ok(ip_addr) = ip.parse::<std::net::IpAddr>() {
-                    trusted_proxies.iter().any(|net| net.contains(&ip_addr))
-                } else {
-                    false
-                }
-            } else {
-                false
-            };
+            let trusted = self
+                .config
+                .trusted_proxies
+                .as_ref()
+                .and_then(|tp| {
+                    ip.parse::<std::net::IpAddr>()
+                        .ok()
+                        .map(|addr| tp.iter().any(|net| net.contains(&addr)))
+                })
+                .unwrap_or(false); // Default false: If no config or parse fails, assume NOT trusted
 
+            (ip, trusted)
+        } else {
+            (String::new(), false)
+        };
+
+        if !client_ip_str.is_empty() {
             if is_trusted {
                 // If it's a trusted proxy, we append the client IP (or keep what they sent)
                 if let Some(existing) = upstream_request.headers.get("X-Forwarded-For") {
                     if let Ok(existing_str) = existing.to_str() {
-                        let new_xff = format!("{}, {}", existing_str, ip);
+                        let new_xff = format!("{}, {}", existing_str, client_ip_str);
                         let _ = upstream_request.insert_header("X-Forwarded-For", new_xff);
                     } else {
-                        let _ = upstream_request.insert_header("X-Forwarded-For", ip.clone());
+                        let _ = upstream_request
+                            .insert_header("X-Forwarded-For", client_ip_str.clone());
                     }
                 } else {
-                    let _ = upstream_request.insert_header("X-Forwarded-For", ip.clone());
+                    let _ =
+                        upstream_request.insert_header("X-Forwarded-For", client_ip_str.clone());
                 }
             } else {
                 // If not trusted, we OVERWRITE any existing X-Forwarded-For to prevent spoofing
-                let _ = upstream_request.insert_header("X-Forwarded-For", ip.clone());
+                let _ = upstream_request.insert_header("X-Forwarded-For", client_ip_str.clone());
             }
 
             if !upstream_request.headers.contains_key("X-Real-IP") {
-                let _ = upstream_request.insert_header("X-Real-IP", ip);
+                let _ = upstream_request.insert_header("X-Real-IP", client_ip_str.clone());
             }
         }
 
@@ -125,22 +134,7 @@ impl ProxyHttp for MeshProxy {
         let is_https = session.digest().is_some_and(|d| d.ssl_digest.is_some());
         let scheme = if is_https { "https" } else { "http" };
 
-        let is_trusted_for_proto = if let Some(client_addr) = session.client_addr() {
-            let ip_str = client_addr.to_string();
-            let ip = ip_str.split(':').next().unwrap_or(&ip_str).to_string();
-            if let Ok(ip_addr) = ip.parse::<std::net::IpAddr>() {
-                self.config
-                    .trusted_proxies
-                    .as_ref()
-                    .map_or(false, |tp| tp.iter().any(|net| net.contains(&ip_addr)))
-            } else {
-                false
-            }
-        } else {
-            false
-        };
-
-        if is_trusted_for_proto && upstream_request.headers.contains_key("X-Forwarded-Proto") {
+        if is_trusted && upstream_request.headers.contains_key("X-Forwarded-Proto") {
             // Keep what the trusted proxy sent
         } else {
             // Overwrite with actual proto
@@ -166,14 +160,14 @@ impl ProxyHttp for MeshProxy {
             }
         }
 
-        if is_trusted_for_proto && upstream_request.headers.contains_key("X-Forwarded-Port") {
+        if is_trusted && upstream_request.headers.contains_key("X-Forwarded-Port") {
             // Keep what trusted proxy sent
         } else {
             let _ = upstream_request.insert_header("X-Forwarded-Port", port);
         }
 
         // --- X-Forwarded-Host ---
-        if is_trusted_for_proto && upstream_request.headers.contains_key("X-Forwarded-Host") {
+        if is_trusted && upstream_request.headers.contains_key("X-Forwarded-Host") {
             // Keep existing
         } else {
             if let Some(host) = session.req_header().headers.get("Host") {
@@ -283,7 +277,7 @@ impl ProxyHttp for MeshProxy {
             .map(|hv| hv.to_str().unwrap_or(""))
             .unwrap_or("");
 
-        let default_statuses = vec![200];
+        let default_statuses = vec![200u16];
         let default_content_types = vec!["text/html".to_string()];
 
         let valid_statuses = self
@@ -322,10 +316,25 @@ impl ProxyHttp for MeshProxy {
     ) -> Result<Option<Duration>> {
         if ctx.should_cache {
             if let Some(b) = body {
-                ctx.response_body.extend_from_slice(b);
+                // Safety: Prevent Out Of Memory (OOM) by capping max cacheable size.
+                let max_mb = self
+                    .config
+                    .cache
+                    .as_ref()
+                    .and_then(|c| c.max_cacheable_size_mb)
+                    .unwrap_or(5); // Default to 5MB
+
+                let max_cacheable_size = max_mb * 1024 * 1024;
+                if ctx.response_body.len() + b.len() > max_cacheable_size {
+                    // Body is too large. Stop caching to save memory and skip storing it.
+                    ctx.should_cache = false;
+                    ctx.response_body.clear(); // Free up memory immediately
+                } else {
+                    ctx.response_body.extend_from_slice(b);
+                }
             }
 
-            if end_of_stream {
+            if ctx.should_cache && end_of_stream {
                 let cache_key = ctx.cache_key.clone();
                 let html_bytes = Bytes::from(ctx.response_body.clone());
                 let redis_url_opt = self.config.redis_url.clone();

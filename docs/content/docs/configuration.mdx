@@ -89,6 +89,7 @@ cache_control:
 | `cache.tier1_capacity` | Max elements in RAM cache. | `Integer` |
 | `cache.tier1_ttl_seconds` | Tier 1 TTL in seconds. | `Integer` |
 | `cache.tier2_ttl_seconds` | Tier 2 (Redis) TTL in seconds. | `Integer` |
+| `cache.max_cacheable_size_mb` | Maximum response size to cache in MB. Defaults to `5`. | `Integer` |
 | `cache.status` | Allowed HTTP statuses. Default: `[200]`. | `Array<Integer>` |
 | `cache.content_types` | Allowed Content-Types. Default: `["text/html"]`. | `Array<String>` |
 
