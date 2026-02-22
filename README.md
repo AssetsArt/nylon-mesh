@@ -1,9 +1,19 @@
 <div align="center">
-  <strong>Nylon Mesh - Cache Everything. Scale Instantly.</strong>
-</div>
-<br/>
 
-**Nylon Mesh** is a blazing-fast edge proxy built to solve the headaches of caching for modern SSR frameworks. Built with Rust and powered by Cloudflare's Pingora, it provides massive throughput with minimal resource footprint.
+# 🕸️ Nylon Mesh
+
+**Cache Everything. Scale Instantly.**
+
+[![Rust](https://img.shields.io/badge/Rust-000000?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green)](#)
+
+*A blazing-fast edge proxy built to solve the headaches of caching for modern SSR frameworks.*
+
+[Why Nylon Mesh?](#why-nylon-mesh) • [Features](#key-features) • [Quick Start](#installation) • [Configuration](#configuration-example-nylon-meshyaml)
+
+</div>
+
+
 
 ## Why Nylon Mesh?
 
