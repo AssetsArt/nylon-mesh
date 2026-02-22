@@ -35,16 +35,16 @@ Frameworks like **Next.js, Nuxt, React (SSR), Angular, and Vue** are powerful—
 
 ## Installation
 
-Nylon Mesh is written in **Rust** for maximum performance. You can compile and run it directly:
+The fastest way to install Nylon Mesh globally is via our official installation script:
+
+```bash
+curl -fsSL https://mesh.nylon.sh/install | bash
+```
+
+Alternatively, you can compile and run directly from source:
 
 ```bash
 cargo build --release
-```
-
-Or install it via Bun into your Node.js project:
-
-```bash
-bun add nylon-mesh
 ```
 
 ## Initialization
@@ -52,7 +52,7 @@ bun add nylon-mesh
 Generate a ready-to-use configuration file in your project:
 
 ```bash
-bunx nylon-mesh init
+nylon-mesh init
 ```
 
 This creates a `nylon-mesh.yaml` in your project folder. **No code changes are required in your application.**
@@ -62,7 +62,7 @@ This creates a `nylon-mesh.yaml` in your project folder. **No code changes are r
 Start by pointing the proxy at your generated config file:
 
 ```bash
-cargo run --release -- nylon-mesh.yaml
+cargo run --release -- start -c nylon-mesh.yaml
 ```
 
 Or via the CLI wrapper if installed via package manager:

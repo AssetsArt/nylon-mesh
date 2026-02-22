@@ -29,12 +29,6 @@ Alternatively, you can compile and run directly from source:
 cargo build --release
 ```
 
-Or install via bun into your project:
-
-```bash
-bun add nylon-mesh
-```
-
 ## Initialization
 
 Generate a ready-to-use configuration file:
@@ -50,7 +44,7 @@ This creates a `nylon-mesh.yaml` in your project folder. **No code changes requi
 Start by pointing the proxy at your config:
 
 ```bash
-cargo run --release -- nylon-mesh.yaml
+cargo run --release -- start -c nylon-mesh.yaml
 ```
 
 Or run it directly:
