@@ -42,7 +42,7 @@ export default function HomePage() {
       <section className="flex flex-col items-center justify-center pt-16 pb-16 px-4 text-center">
         <div className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-600 dark:text-emerald-400 mb-8 backdrop-blur-sm">
           <span className="flex h-2 w-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
-          Nylon Mesh v0.1.0 is out
+          Nylon Mesh v1.0.0 is out
         </div>
 
         <h1 className="text-6xl md:text-8xl font-black tracking-tight mb-6 max-w-5xl">
