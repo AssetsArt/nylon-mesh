@@ -11,6 +11,10 @@
 
 [Why Nylon Mesh?](#why-nylon-mesh) • [Features](#key-features) • [Quick Start](#installation) • [Configuration](#configuration-example-nylon-meshyaml)
 
+<br/>
+
+![Nylon Mesh Demo](docs/demo.gif)
+
 </div>
 
 
