@@ -9,7 +9,8 @@
   "scripts": {
     "build": "cargo build --release",
     "docs:dev": "cd docs && bun run dev",
-    "docs:build": "cd docs && bun run build"
+    "docs:build": "cd docs && bun run build",
+    "release": "bun run scripts/release.mjs"
   },
   "keywords": [
     "proxy",
