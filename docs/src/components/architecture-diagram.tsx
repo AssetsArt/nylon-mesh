@@ -51,10 +51,10 @@ export function ArchitectureDiagram() {
                 <span className="ml-auto text-emerald-500 font-mono font-bold">~0.01ms</span>
               </div>
               <div className="text-[0.65rem] text-fd-muted-foreground text-center font-bold tracking-widest uppercase py-0.5">↓ miss</div>
-              <div className="flex items-center gap-3 bg-fd-card/80 border border-fd-border rounded-xl px-4 py-2.5 text-sm transition-colors group-hover:border-blue-500/30 shadow-sm min-w-44">
+              <div className="flex items-center gap-3 bg-fd-card/80 border border-fd-border rounded-xl px-4 py-2.5 text-sm transition-colors group-hover:border-blue-500/30 shadow-sm min-w-44 whitespace-nowrap">
                 <span className="bg-blue-500/20 text-blue-400 font-black text-[0.65rem] px-1.5 py-0.5 rounded tracking-wide">T2</span>
-                <span className="text-fd-foreground font-bold">Redis</span>
-                <span className="ml-auto text-blue-400 font-mono font-bold">~0.5ms</span>
+                <span className="text-fd-foreground font-bold text-xs">Redis/Dragonfly</span>
+                <span className="ml-auto pl-2 text-blue-400 font-mono font-bold">~0.5ms</span>
               </div>
             </div>
           </div>

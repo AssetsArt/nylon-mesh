@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { FrameworkLogos } from '@/components/framework-logos';
 import { ArchitectureDiagram } from '@/components/architecture-diagram';
 import { Benchmark } from '@/components/benchmark';
+import { Configuration } from '@/components/configuration';
 import { CopyButton } from '@/components/copy-button';
 import { Zap, Layers, Network, Blocks, ChevronRight } from 'lucide-react';
 
@@ -14,7 +15,7 @@ const features = [
   {
     icon: <Layers className="w-6 h-6 text-blue-400" />,
     title: '2-Tier Architecture',
-    description: 'Tier 1 (in-memory RAM via Moka) responds in microseconds. Tier 2 (Redis) handles persistent, distributed cache. Your backend only renders once.',
+    description: 'Tier 1 (in-memory RAM via Moka) responds in microseconds. Tier 2 (Redis/DragonflyDB) handles persistent, distributed cache. Your backend only renders once.',
   },
   {
     icon: <Network className="w-6 h-6 text-purple-400" />,
@@ -76,7 +77,7 @@ export default function HomePage() {
       </section>
 
       {/* Features Grid (Bento Box Style) */}
-      <section className="max-w-6xl mx-auto px-4 py-24 relative z-10">
+      <section className="max-w-6xl mx-auto px-4 py-6 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Why Nylon Mesh?</h2>
           <p className="text-xl text-fd-muted-foreground">Built for modern web frameworks.</p>
@@ -110,6 +111,11 @@ export default function HomePage() {
           <ArchitectureDiagram />
         </div>
       </div>
+
+      {/* Configuration Section */}
+      <section className="mx-auto w-full max-w-6xl px-4 pb-24 relative z-10">
+        <Configuration />
+      </section>
     </div>
   );
 }
