@@ -1,3 +1,10 @@
+#[cfg(not(debug_assertions))]
+use mimalloc::MiMalloc;
+
+#[cfg(not(debug_assertions))]
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 pub mod config;
 pub mod proxy;
 pub mod tls_accept;

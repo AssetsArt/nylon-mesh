@@ -188,8 +188,10 @@ impl MeshProxy {
             }
             ctx.cache_key = cache_key.clone();
 
+            // let now = std::time::Instant::now();
             // Tier 1
             if let Some((mut header, body)) = self.tier1_cache.get(&cache_key).await {
+                // println!("Tier 1 HIT: {:?}", now.elapsed());
                 debug!("Tier 1 HIT: {}", cache_key);
                 if let Some(timestamp) = self.encoding_hits.get(*enc) {
                     timestamp.store(now_secs, std::sync::atomic::Ordering::Relaxed);
@@ -228,9 +230,9 @@ impl MeshProxy {
         redis_url_opt: Option<String>,
         t2_ttl: u64,
     ) {
-        // transfer-encoding
         let _ = header.remove_header("Transfer-Encoding");
         let _ = header.insert_header("Content-Length", html_bytes.len().to_string());
+        let _ = header.remove_header("Cache-Control");
 
         let content_encoding = header
             .headers
