@@ -50,7 +50,28 @@ async fn shutdown(shutdown_timeout: u64) {
 fn main() {
     tracing_subscriber::fmt().init();
 
-    let opt = Opt::parse_args();
+    let mut args: Vec<String> = std::env::args().collect();
+    if args.len() >= 2 {
+        if args[1] == "init" {
+            let config_path = "nylon-mesh.yaml";
+            if std::path::Path::new(config_path).exists() {
+                eprintln!("nylon-mesh.yaml already exists.");
+            } else {
+                let default_yaml = include_str!("../nylon-mesh.yaml");
+                if let Err(e) = std::fs::write(config_path, default_yaml) {
+                    eprintln!("Failed to create nylon-mesh.yaml: {}", e);
+                    std::process::exit(1);
+                }
+                println!("Created nylon-mesh.yaml!");
+            }
+            println!("Run `nylon-mesh start` to start the proxy.");
+            std::process::exit(0);
+        } else if args[1] == "start" {
+            args.remove(1); // remove "start" so Pingora can parse the rest
+        }
+    }
+
+    let opt = Opt::parse_from_args(args);
     let config_path = opt.conf.as_deref().unwrap_or("nylon-mesh.yaml");
 
     info!("Loading config from: {}", config_path);
