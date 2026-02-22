@@ -69,12 +69,6 @@ Start by pointing the proxy at your generated config file:
 cargo run --release -- start -c nylon-mesh.yaml
 ```
 
-Or via the CLI wrapper if installed via package manager:
-
-```bash
-bunx nylon-mesh start nylon-mesh.yaml
-```
-
 Traffic hitting port `3000` (default) is now being cached and routed to your backend efficiently!
 
 ## Configuration Example (`nylon-mesh.yaml`)
