@@ -1,6 +1,6 @@
 {
   "name": "nylon-mesh",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Nylon Mesh - Cache Everything. Scale Instantly.",
   "main": "index.js",
   "bin": {
