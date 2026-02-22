@@ -9,9 +9,9 @@ description: Install and run Nylon Mesh in under 2 minutes.
 
 Frameworks like **Next.js, Nuxt, React (SSR), Angular, and Vue** are powerful—but server-side rendering is computationally expensive. Running Node.js under heavy traffic without a dedicated caching layer leads to:
 
-- 🔥 High CPU usage and slow TTFB
-- 💥 Potential crashes under traffic spikes
-- 😩 Complex custom caching logic inside your app
+- High CPU usage and slow TTFB
+- Potential crashes under traffic spikes
+- Complex custom caching logic inside your app
 
 **Nylon Mesh sits in front of your app.** It intercepts HTTP requests, caches the expensive SSR-generated HTML in RAM and Redis, and serves subsequent users instantly—dropping your backend load to near zero.
 
