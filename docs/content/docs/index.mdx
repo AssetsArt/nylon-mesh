@@ -19,9 +19,28 @@ Frameworks like **Next.js, Nuxt, React (SSR), Angular, and Vue** are powerful—
 
 The fastest way to install Nylon Mesh globally is via our official installation script:
 
-```bash
-curl -fsSL https://mesh.nylon.sh/install | bash
-```
+<Tabs items={['curl', 'bun', 'pnpm', 'npm']}>
+  <Tab value="curl">
+  ```bash
+  curl -fsSL https://mesh.nylon.sh/install | bash
+  ```
+  </Tab>
+  <Tab value="bun">
+  ```bash
+  bunx nylon-mesh@latest init
+  ```
+  </Tab>
+  <Tab value="pnpm">
+  ```bash
+  pnpx nylon-mesh@latest init
+  ```
+  </Tab>
+  <Tab value="npm">
+  ```bash
+  npx nylon-mesh@latest init
+  ```
+  </Tab>
+</Tabs>
 
 Alternatively, you can compile and run directly from source:
 

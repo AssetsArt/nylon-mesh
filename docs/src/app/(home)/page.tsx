@@ -5,6 +5,7 @@ import { Benchmark } from '@/components/benchmark';
 import { Configuration } from '@/components/configuration';
 import { Footer } from '@/components/footer';
 import { CopyButton } from '@/components/copy-button';
+import { InstallTabs } from '@/components/install-tabs';
 import { Zap, Layers, Network, Blocks, ChevronRight } from 'lucide-react';
 
 const features = [
@@ -80,9 +81,8 @@ export default async function HomePage() {
             Get Started
             <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Link>
-          <div className="flex w-full sm:w-auto items-center justify-between rounded-xl border border-fd-border bg-fd-card px-4 py-4 text-sm font-mono text-fd-muted-foreground shadow-sm group hover:border-emerald-500/50 transition-colors">
-            <span className="mr-8 select-all">curl -fsSL https://mesh.nylon.sh/install | bash</span>
-            <CopyButton text="curl -fsSL https://mesh.nylon.sh/install | bash" />
+          <div className="flex w-full sm:w-auto items-center justify-between shadow-sm group transition-colors">
+            <InstallTabs />
           </div>
         </div>
       </section>
