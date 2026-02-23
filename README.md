@@ -45,7 +45,21 @@ The fastest way to install Nylon Mesh globally is via our official installation 
 curl -fsSL https://mesh.nylon.sh/install | bash
 ```
 
-Alternatively, you can compile and run directly from source:
+Alternatively, you can execute the initialization directly using your favorite package manager (no installation required):
+
+```bash
+bunx nylon-mesh@latest init
+```
+
+```bash
+pnpx nylon-mesh@latest init
+```
+
+```bash
+npx nylon-mesh@latest init
+```
+
+Or you can compile and run directly from source:
 
 ```bash
 cargo build --release
@@ -53,7 +67,7 @@ cargo build --release
 
 ## Initialization
 
-Generate a ready-to-use configuration file in your project:
+If you installed Nylon Mesh globally, generate a ready-to-use configuration file in your project:
 
 ```bash
 nylon-mesh init

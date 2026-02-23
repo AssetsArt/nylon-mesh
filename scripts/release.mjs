@@ -48,7 +48,6 @@ try {
   console.log("🔖 Preparing git commit...");
   execSync("git add package.json Cargo.toml", { stdio: "inherit" });
 
-  // เช็กว่ามีไฟล์เปลี่ยนแปลงให้ commit จริงๆ หรือไม่
   const hasChanges =
     execSync("git status --porcelain package.json Cargo.toml")
       .toString()
@@ -65,7 +64,6 @@ try {
     );
   }
 
-  // จัดการเรื่อง Tag (ถ้ามี Tag ในเครื่องอยู่แล้ว ให้ลบก่อนแล้วสร้างใหม่)
   console.log("🔖 Creating git tag...");
   const tagExists =
     execSync(`git tag -l ${tagVersion}`).toString().trim() !== "";
