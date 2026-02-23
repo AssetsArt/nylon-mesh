@@ -168,16 +168,9 @@ async function main() {
   }
 
   if (command === 'start') {
-    const targetReleasePath = path.join(__dirname, '..', `${BINARY_NAME}`);
-    const targetDebugPath = path.join(__dirname, '..', `${BINARY_NAME}`);
-
     let exeToRun = null;
     if (fs.existsSync(downloadedBinaryPath)) {
       exeToRun = downloadedBinaryPath;
-    } else if (fs.existsSync(targetReleasePath)) {
-      exeToRun = targetReleasePath;
-    } else if (fs.existsSync(targetDebugPath)) {
-      exeToRun = targetDebugPath;
     } else {
       console.log('Nylon Mesh binary not found. Downloading...');
       await downloadBinary(downloadedBinaryPath);
