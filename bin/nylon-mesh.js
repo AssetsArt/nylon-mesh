@@ -93,23 +93,9 @@ function httpsGet(url, options = {}) {
   });
 }
 
-async function getLatestReleaseVersion() {
-  try {
-    const res = await httpsGet(`https://api.github.com/repos/${REPO}/releases/latest`);
-    let data = '';
-    for await (const chunk of res) { data += chunk; }
-    const release = JSON.parse(data);
-    return release.tag_name;
-  } catch (err) {
-    console.error('Failed to fetch latest release from GitHub API.', err.message);
-    return null;
-  }
-}
-
-async function downloadBinary(targetPath) {
-  const version = await getLatestReleaseVersion();
+async function downloadBinary(targetPath, version) {
   if (!version) {
-    console.error('Could not determine latest version. Please build from source using `cargo build --release`.');
+    console.error('Could not determine version. Please build from source using `cargo build --release`.');
     process.exit(1);
   }
 
@@ -145,12 +131,26 @@ async function downloadBinary(targetPath) {
 }
 
 async function main() {
+  const packageJson = fs.readFileSync(path.join(__dirname, '../package.json'), 'utf-8');
+  const packageJsonObj = JSON.parse(packageJson);
+  const expectedVersion = packageJsonObj.version.split('-')[0];
   const globalBinDir = path.join(os.homedir(), '.nylon-mesh', 'bin');
-  const downloadedBinaryPath = path.join(globalBinDir, BINARY_NAME);
+  const downloadedBinaryPath = path.join(globalBinDir, `${BINARY_NAME}-${expectedVersion}`);
 
   if (!fs.existsSync(globalBinDir)) {
     fs.mkdirSync(globalBinDir, { recursive: true });
   }
+
+  const cleanupOldBinaries = () => {
+    try {
+      const files = fs.readdirSync(globalBinDir);
+      for (const file of files) {
+        if (file.startsWith(BINARY_NAME) && file !== `${BINARY_NAME}-${expectedVersion}`) {
+          fs.unlinkSync(path.join(globalBinDir, file));
+        }
+      }
+    } catch (e) { }
+  };
 
   if (command === 'init') {
     const targetPath = path.join(process.cwd(), 'nylon-mesh.yaml');
@@ -162,12 +162,14 @@ async function main() {
     }
 
     if (!fs.existsSync(downloadedBinaryPath)) {
-      await downloadBinary(downloadedBinaryPath);
+      console.log(`Nylon Mesh binary (version ${expectedVersion}) not found. Downloading...`);
+      cleanupOldBinaries();
+      await downloadBinary(downloadedBinaryPath, expectedVersion);
     } else {
-      console.log('Binary already downloaded.');
+      console.log(`Binary (version ${expectedVersion}) already downloaded.`);
     }
 
-    console.log(`Download location: ${downloadedBinaryPath}`);
+    console.log(`Binary location: ${downloadedBinaryPath}`);
     console.log('Run `bunx nylon-mesh start` to start the proxy.');
     process.exit(0);
   }
@@ -177,8 +179,9 @@ async function main() {
     if (fs.existsSync(downloadedBinaryPath)) {
       exeToRun = downloadedBinaryPath;
     } else {
-      console.log('Nylon Mesh binary not found. Downloading...');
-      await downloadBinary(downloadedBinaryPath);
+      console.log(`Nylon Mesh binary (version ${expectedVersion}) not found. Downloading...`);
+      cleanupOldBinaries();
+      await downloadBinary(downloadedBinaryPath, expectedVersion);
       exeToRun = downloadedBinaryPath;
     }
 
