@@ -162,6 +162,7 @@ async function main() {
       console.log('Binary already downloaded.');
     }
 
+    console.log(`Download location: ${downloadedBinaryPath}`);
     console.log('Run `bunx nylon-mesh start` to start the proxy.');
     process.exit(0);
   }
