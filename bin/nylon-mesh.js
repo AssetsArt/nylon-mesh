@@ -133,7 +133,7 @@ async function downloadBinary(targetPath, version) {
 async function main() {
   const packageJson = fs.readFileSync(path.join(__dirname, '../package.json'), 'utf-8');
   const packageJsonObj = JSON.parse(packageJson);
-  const expectedVersion = packageJsonObj.version.split('-')[0];
+  const expectedVersion = `v${packageJsonObj.version.split('-')[0]}`;
   const globalBinDir = path.join(os.homedir(), '.nylon-mesh', 'bin');
   const downloadedBinaryPath = path.join(globalBinDir, `${BINARY_NAME}-${expectedVersion}`);
 
