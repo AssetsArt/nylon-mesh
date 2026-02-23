@@ -10,7 +10,8 @@
     "bin",
     "nylon-mesh.yaml",
     "package.json",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "cargo build --release",
