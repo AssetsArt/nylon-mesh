@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { spawnSync } = require('child_process');
 const https = require('https');
 
@@ -144,8 +145,12 @@ async function downloadBinary(targetPath) {
 }
 
 async function main() {
-  const localBinDir = path.join(__dirname, '..', 'bin');
-  const downloadedBinaryPath = path.join(localBinDir, `${BINARY_NAME}-bin`);
+  const globalBinDir = path.join(os.homedir(), '.nylon-mesh', 'bin');
+  const downloadedBinaryPath = path.join(globalBinDir, BINARY_NAME);
+
+  if (!fs.existsSync(globalBinDir)) {
+    fs.mkdirSync(globalBinDir, { recursive: true });
+  }
 
   if (command === 'init') {
     const targetPath = path.join(process.cwd(), 'nylon-mesh.yaml');

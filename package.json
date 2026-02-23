@@ -24,6 +24,14 @@
     "nylon",
     "pingora"
   ],
-  "author": "",
-  "license": "MIT"
+  "author": "AssetsArt",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AssetsArt/nylon-mesh.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AssetsArt/nylon-mesh/issues"
+  },
+  "homepage": "https://mesh.nylon.sh"
 }
