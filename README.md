@@ -13,7 +13,7 @@
 
 <br/>
 
-![Nylon Mesh Demo](docs/demo.gif)
+![Nylon Mesh Demo](https://github.com/AssetsArt/nylon-mesh/blob/main/docs/demo.gif?raw=true)
 
 </div>
 
