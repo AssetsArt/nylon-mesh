@@ -12,9 +12,9 @@ upstreams:
 # redis_url: "redis://localhost:6379"
 
 cache:
-  tier1_capacity: 10000
-  tier1_ttl_seconds: 3
-  tier2_ttl_seconds: 60
+  t1_cap: 100000
+  t1_ttl: 3
+  t2_ttl: 30
   status: [200, 404]
   content_types:
     - "text/html"
@@ -23,7 +23,7 @@ bypass:
   paths:
     - "/_next/"
     - "/api/"
-  extensions:
+  ext:
     - ".ico"
     - ".png"`;
 
@@ -71,11 +71,11 @@ bypass:
                 {`\n\n`}
                 <span className="text-pink-400">cache</span><span className="text-gray-300">:</span>
                 {`\n`}
-                {`  `}<span className="text-blue-400">tier1_capacity</span><span className="text-gray-300">: </span><span className="text-yellow-400">10000</span>
+                {`  `}<span className="text-blue-400">t1_cap</span><span className="text-gray-300">: </span><span className="text-yellow-400">100000</span>
                 {`\n`}
-                {`  `}<span className="text-blue-400">tier1_ttl_seconds</span><span className="text-gray-300">: </span><span className="text-yellow-400">3</span>
+                {`  `}<span className="text-blue-400">t1_ttl</span><span className="text-gray-300">: </span><span className="text-yellow-400">3</span>
                 {`\n`}
-                {`  `}<span className="text-blue-400">tier2_ttl_seconds</span><span className="text-gray-300">: </span><span className="text-yellow-400">60</span>
+                {`  `}<span className="text-blue-400">t2_ttl</span><span className="text-gray-300">: </span><span className="text-yellow-400">30</span>
                 {`\n`}
                 {`  `}<span className="text-blue-400">status</span><span className="text-gray-300">: [</span><span className="text-yellow-400">200</span><span className="text-gray-300">, </span><span className="text-yellow-400">404</span><span className="text-gray-300">]</span>
                 {`\n`}
@@ -91,7 +91,7 @@ bypass:
                 {`\n`}
                 {`    - `}<span className="text-green-400">"/api/"</span>
                 {`\n`}
-                {`  `}<span className="text-blue-400">extensions</span><span className="text-gray-300">:</span>
+                {`  `}<span className="text-blue-400">ext</span><span className="text-gray-300">:</span>
                 {`\n`}
                 {`    - `}<span className="text-green-400">".ico"</span>
                 {`\n`}

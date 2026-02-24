@@ -63,8 +63,11 @@ pub struct CertificateConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct CacheConfig {
+    #[serde(alias = "t1_cap")]
     pub tier1_capacity: Option<u64>,
+    #[serde(alias = "t1_ttl")]
     pub tier1_ttl_seconds: Option<u64>,
+    #[serde(alias = "t2_ttl")]
     pub tier2_ttl_seconds: Option<u64>,
     pub max_cacheable_size_mb: Option<usize>,
     pub status: Option<Vec<u16>>,
@@ -74,6 +77,7 @@ pub struct CacheConfig {
 #[derive(Debug, Deserialize, Clone)]
 pub struct BypassConfig {
     pub paths: Option<Vec<String>>,
+    #[serde(alias = "ext")]
     pub extensions: Option<Vec<String>>,
 }
 
@@ -81,6 +85,7 @@ pub struct BypassConfig {
 pub struct CacheControlConfig {
     pub value: String,
     pub paths: Option<Vec<String>>,
+    #[serde(alias = "ext")]
     pub extensions: Option<Vec<String>>,
 }
 

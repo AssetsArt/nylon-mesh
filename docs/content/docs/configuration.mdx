@@ -28,9 +28,9 @@ trusted_proxies:
   - "10.0.0.0/8"
 
 cache:
-  tier1_capacity: 10000
-  tier1_ttl_seconds: 3
-  tier2_ttl_seconds: 60
+  t1_cap: 100000
+  t1_ttl: 3
+  t2_ttl: 30
   status: [200, 404]
   content_types:
     - "text/html"
@@ -39,7 +39,7 @@ bypass:
   paths:
     - "/_next/"
     - "/api/"
-  extensions:
+  ext:
     - ".ico"
     - ".png"
 
@@ -47,7 +47,7 @@ cache_control:
   - value: "public, max-age=31536000, immutable"
     paths:
       - "/_next/static/"
-    extensions:
+    ext:
       - ".ico"
       - ".png"
       - ".jpg"
@@ -86,9 +86,9 @@ cache_control:
 | Property | Description | Type |
 |---|---|---|
 | `redis_url` | Redis connection URL for Tier 2 cache. | `String` |
-| `cache.tier1_capacity` | Max elements in RAM cache. | `Integer` |
-| `cache.tier1_ttl_seconds` | Tier 1 TTL in seconds. | `Integer` |
-| `cache.tier2_ttl_seconds` | Tier 2 (Redis) TTL in seconds. | `Integer` |
+| `cache.t1_cap` | Max elements in RAM cache. | `Integer` |
+| `cache.t1_ttl` | Tier 1 TTL in seconds. | `Integer` |
+| `cache.t2_ttl` | Tier 2 (Redis) TTL in seconds. | `Integer` |
 | `cache.max_cacheable_size_mb` | Maximum response size to cache in MB. Defaults to `5`. | `Integer` |
 | `cache.status` | Allowed HTTP statuses. Default: `[200]`. | `Array<Integer>` |
 | `cache.content_types` | Allowed Content-Types. Default: `["text/html"]`. | `Array<String>` |
@@ -98,7 +98,7 @@ cache_control:
 | Property | Description | Type |
 |---|---|---|
 | `bypass.paths` | URL prefixes that should **never** be cached. | `Array<String>` |
-| `bypass.extensions` | File extensions that should **never** be cached. | `Array<String>` |
+| `bypass.ext` | File extensions that should **never** be cached. | `Array<String>` |
 | `cache_control` | Rules for injecting `Cache-Control` headers. | `Array<Object>` |
 
 ---

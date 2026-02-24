@@ -13,8 +13,8 @@ The first layer of defense. Caches rendered HTML payloads and static files direc
 
 | Property | Description | Example |
 |---|---|---|
-| `tier1_capacity` | Max elements (pages/files) held concurrently | `10000` |
-| `tier1_ttl_seconds` | Time-to-Live — proxy serves from RAM during this interval | `3` – `5` |
+| `t1_cap` | Max elements (pages/files) held concurrently | `10000` |
+| `t1_ttl` | Time-to-Live — proxy serves from RAM during this interval | `3` – `5` |
 
 <Callout title="Performance" type="info">
 Set TTL to `3`–`5` seconds for high-traffic environments. This prevents backend melting while keeping data near real-time.
@@ -27,7 +27,7 @@ A persistent, distributed cache layer backing up Tier 1:
 | Property | Description | Example |
 |---|---|---|
 | `redis_url` | Redis connection string | `redis://localhost:6379` |
-| `tier2_ttl_seconds` | General TTL for cached pages | `60` |
+| `t2_ttl` | General TTL for cached pages | `60` |
 | `status` | HTTP status codes to cache | `[200, 404]` |
 | `content_types` | HTTP Content-Types to cache | `["text/html"]` |
 
@@ -82,7 +82,7 @@ bypass:
     - "/_next/webpack-hmr" # Next.js HMR (dev only)
     - "/api/"              # Backend API calls
     - "/admin/"            # Authenticated panels
-  extensions:
+  ext:
     - ".ico"               # Skip favicons
 ```
 
@@ -104,7 +104,7 @@ cache_control:
     paths:
       - "/_next/static/"  # Next.js hashed assets
       - "/_nuxt/"         # Nuxt.js assets
-    extensions:
+    ext:
       - ".png"
       - ".jpg"
       - ".svg"

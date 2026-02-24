@@ -28,11 +28,11 @@ upstreams:
   # - address: "127.0.0.1:3002"
     # weight: 5
 load_balancer_algo: "round_robin"
-redis_url: "redis://localhost:6379"
+# redis_url: "redis://localhost:6379"
 cache:
-  tier1_capacity: 10000
-  tier1_ttl_seconds: 3
-  tier2_ttl_seconds: 60
+  t1_cap: 100000
+  t1_ttl: 3
+  t2_ttl: 30
   status:
     - 200
   content_types:
