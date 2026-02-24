@@ -41,14 +41,14 @@ bypass:
   paths:
     - "/_next/"
     - "/api/"
-  extensions:
+  ext:
     - ".ico"
     - ".png"
 # cache_control:
 #   - value: "public, max-age=31536000, immutable"
 #     paths:
 #       - "/_next/static/"
-#     extensions:
+#     ext:
 #       - ".ico"
 #       - ".png"
 #       - ".jpg"
