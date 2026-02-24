@@ -2,6 +2,7 @@
   "title": "Documentation",
   "pages": [
     "index",
+    "benchmark",
     "caching",
     "load-balancing",
     "configuration",
