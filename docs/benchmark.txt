@@ -1,0 +1,74 @@
+admin@ip-10-0-9-51:~$ ./oha-linux-arm64 -c 120 -z 10s -m GET http://10.0.11.157:3000
+Summary:
+  Success rate:	100.00%
+  Total:	10001.5760 ms
+  Slowest:	95.6253 ms
+  Fastest:	0.0699 ms
+  Average:	0.5925 ms
+  Requests/sec:	200867.1433
+
+  Total data:	5.70 GiB
+  Size/request:	2.98 KiB
+  Size/sec:	584.07 MiB
+
+Response time histogram:
+   0.070 ms [1]       |
+   9.625 ms [2008845] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  19.181 ms [0]       |
+  28.736 ms [0]       |
+  38.292 ms [0]       |
+  47.848 ms [0]       |
+  57.403 ms [0]       |
+  66.959 ms [0]       |
+  76.514 ms [1]       |
+  86.070 ms [117]     |
+  95.625 ms [2]       |
+
+Response time distribution:
+  10.00% in 0.3686 ms
+  25.00% in 0.4437 ms
+  50.00% in 0.5365 ms
+  75.00% in 0.6654 ms
+  90.00% in 0.8583 ms
+  95.00% in 1.0294 ms
+  99.00% in 1.5710 ms
+  99.90% in 2.1867 ms
+  99.99% in 3.5092 ms
+
+
+admin@ip-10-0-9-51:~$ ./oha-linux-arm64 -c 120 -z 10s -m GET http://10.0.11.157:3001
+Summary:
+  Success rate:	100.00%
+  Total:	10002.0319 ms
+  Slowest:	168.7521 ms
+  Fastest:	11.9770 ms
+  Average:	63.8852 ms
+  Requests/sec:	1880.2180
+
+  Total data:	54.40 MiB
+  Size/request:	2.98 KiB
+  Size/sec:	5.44 MiB
+
+Response time histogram:
+   11.977 ms [1]     |
+   27.654 ms [89]    |
+   43.332 ms [39]    |
+   59.009 ms [5645]  |■■■■■■■■■■■■■■■
+   74.687 ms [11429] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+   90.365 ms [968]   |■■
+  106.042 ms [120]   |
+  121.720 ms [243]   |
+  137.397 ms [138]   |
+  153.075 ms [33]    |
+  168.752 ms [2]     |
+
+Response time distribution:
+  10.00% in 57.0056 ms
+  25.00% in 58.6430 ms
+  50.00% in 60.6245 ms
+  75.00% in 65.3658 ms
+  90.00% in 72.0337 ms
+  95.00% in 82.2071 ms
+  99.00% in 120.8283 ms
+  99.90% in 142.4703 ms
+  99.99% in 168.7090 ms
