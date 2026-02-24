@@ -13,8 +13,8 @@ export function Benchmark() {
   const animationId = useRef<number | null>(null);
 
   useEffect(() => {
-    const vTargetReq = 5181, vTargetLat = 23.20, vTargetTrans = 15;
-    const mTargetReq = 100321, mTargetLat = 1.19, mTargetTrans = 292;
+    const vTargetReq = 1880, vTargetLat = 63.89, vTargetTrans = 5;
+    const mTargetReq = 200867, mTargetLat = 0.59, mTargetTrans = 584;
     const targetMultiplier = mTargetReq / vTargetReq;
     const duration = 2000;
     let startTime: number | null = null;
@@ -40,7 +40,7 @@ export function Benchmark() {
         setVanillaTransfer(Math.floor(vTargetTrans + Math.sin(t * 2.5) * 1 + Math.cos(t * 4) * 0.5));
         const mr = Math.floor(mTargetReq + Math.sin(t * 2) * 800 + Math.cos(t * 3.5) * 500);
         setMeshReqSec(mr);
-        setMeshLatency(Math.max(0.8, mTargetLat + Math.sin(t * 3) * 0.08 + Math.cos(t * 1.8) * 0.05).toFixed(2));
+        setMeshLatency(Math.max(0.1, mTargetLat + Math.sin(t * 3) * 0.08 + Math.cos(t * 1.8) * 0.05).toFixed(2));
         setMeshTransfer(Math.floor(mTargetTrans + Math.sin(t * 2.5) * 6 + Math.cos(t * 4) * 4));
         setMultiplier((mr / Math.max(vr, 1)).toFixed(1));
       }
@@ -57,7 +57,7 @@ export function Benchmark() {
         Blazing Fast on Edge
       </h2>
       <p className="text-lg text-fd-muted-foreground mb-10 leading-relaxed animate-[slideUp_0.6s_ease-out_0.1s_both]">
-        Tested with <code className="bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-semibold text-sm">oha</code> — 120 concurrent connections on <strong>Apple M1 Pro</strong> serving a default <code className="bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-semibold text-sm">Next.js 16</code> app.
+        Tested with <code className="bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-semibold text-sm">oha</code> — 120 concurrent connections from an <strong>AWS c7g.xlarge</strong> instance to a default <code className="bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-semibold text-sm">Next.js</code> app running on an <strong>AWS c7g.2xlarge</strong> instance.
       </p>
 
       {/* Multiplier */}
