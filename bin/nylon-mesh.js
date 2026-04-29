@@ -54,6 +54,24 @@ bypass:
 #       - ".jpg"
 `;
 
+function isMuslLinux() {
+  // 1) Fast path: musl ld exists at a well-known location.
+  for (const dir of ['/lib', '/usr/lib']) {
+    try {
+      if (fs.readdirSync(dir).some((f) => /^ld-musl-/.test(f))) return true;
+    } catch (_) {}
+  }
+  // 2) Fallback: ldd prints "musl libc" on musl systems.
+  try {
+    const r = spawnSync('ldd', ['--version'], { encoding: 'utf8' });
+    const out = `${r.stdout || ''}${r.stderr || ''}`;
+    if (/musl/i.test(out)) return true;
+  } catch (_) {}
+  // 3) Explicit override.
+  if (process.env.NYLON_MESH_LIBC === 'musl') return true;
+  return false;
+}
+
 function getPlatformString() {
   const platform = process.platform;
   const arch = process.arch;
@@ -61,7 +79,7 @@ function getPlatformString() {
   let osStr = '';
   switch (platform) {
     case 'darwin': osStr = 'macos'; break;
-    case 'linux': osStr = 'linux-gnu'; break; // Default to gnu, musl support can be added if statically linked or specify manually
+    case 'linux': osStr = isMuslLinux() ? 'linux-musl' : 'linux-gnu'; break;
     case 'win32':
       console.error('❌ Windows is not currently supported.');
       process.exit(1);
