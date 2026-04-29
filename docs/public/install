@@ -15,17 +15,41 @@ echo "Installing Nylon Mesh..."
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 
+# Detect glibc vs musl on Linux
+detect_linux_libc() {
+    # 1) Explicit override.
+    if [ "${NYLON_MESH_LIBC:-}" = "musl" ]; then
+        echo "musl"; return
+    fi
+    if [ "${NYLON_MESH_LIBC:-}" = "gnu" ]; then
+        echo "gnu"; return
+    fi
+    # 2) Fast path: musl ld exists at a well-known location.
+    for d in /lib /usr/lib; do
+        if ls "$d"/ld-musl-* >/dev/null 2>&1; then
+            echo "musl"; return
+        fi
+    done
+    # 3) Fallback: ldd prints "musl libc" on musl systems.
+    if command -v ldd >/dev/null 2>&1; then
+        if ldd --version 2>&1 | grep -qi musl; then
+            echo "musl"; return
+        fi
+    fi
+    echo "gnu"
+}
+
 os_str=""
 case "$OS" in
-    Linux)  os_str="linux-gnu" ;;
+    Linux)  os_str="linux-$(detect_linux_libc)" ;;
     Darwin) os_str="macos" ;;
-    CYGWIN*|MINGW*|MSYS*|MINGW32*|MINGW64*) 
+    CYGWIN*|MINGW*|MSYS*|MINGW32*|MINGW64*)
         echo "❌ Windows is not currently supported."
-        exit 1 
+        exit 1
         ;;
-    *)      
+    *)
         echo "Unsupported OS: $OS"
-        exit 1 
+        exit 1
         ;;
 esac
 
